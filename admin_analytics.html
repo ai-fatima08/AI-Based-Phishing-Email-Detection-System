@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>Admin Analytics</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      :root {
+        --bg-main: #0a1628;
+        --bg-card: #0f2040;
+        --bg-border: #1a3d6b;
+        --accent-teal: #2ab5c0;
+        --accent-teal-hover: #00e5cc;
+        --accent-purple: #7b5ea7;
+        --text-body: #b0cce0;
+        --text-heading: #00d4bb;
+        --text-white: #e8f4ff;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+      }
+
+      body {
+        background: var(--bg-main);
+        display: flex;
+        min-height: 100vh;
+        width: 100%;
+        color: var(--text-body);
+      }
+
+      .sidebar {
+        width: 240px;
+        background: linear-gradient(180deg, #071020 0%, #0a1e3d 100%);
+        color: var(--text-white);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        min-height: 100vh;
+        transition: width 0.3s ease;
+        overflow: hidden;
+        border-right: 1px solid var(--bg-border);
+      }
+
+      .sidebar.collapsed {
+        width: 60px;
+      }
+      .sidebar.collapsed .sidebar-brand p,
+      .sidebar.collapsed .admin-name,
+      .sidebar.collapsed .role-badge,
+      .sidebar.collapsed .nav-label,
+      .sidebar.collapsed .logout-text {
+        display: none;
+      }
+      .sidebar.collapsed .nav-item {
+        justify-content: center;
+        padding: 12px 0;
+      }
+      .sidebar.collapsed .admin-avatar {
+        margin: 10px auto;
+      }
+      .sidebar.collapsed .sidebar-profile {
+        padding: 10px 0;
+      }
+      .sidebar.collapsed .sidebar-brand {
+        justify-content: center;
+        padding: 15px 0;
+      }
+      .sidebar.collapsed .brand-text {
+        display: none;
+      }
+
+      .sidebar-brand {
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--bg-border);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: space-between;
+      }
+      .brand-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .brand-icon {
+        width: 34px;
+        height: 34px;
+        background: rgba(42, 181, 192, 0.2);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+        border: 1px solid rgba(42, 181, 192, 0.3);
+      }
+      .brand-text h2 {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-white);
+      }
+      .brand-text p {
+        font-size: 10px;
+        opacity: 0.6;
+        margin-top: 1px;
+        color: var(--text-body);
+      }
+
+      .toggle-sidebar-btn {
+        background: rgba(42, 181, 192, 0.15);
+        border: none;
+        color: var(--text-white);
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: 0.2s;
+      }
+      .toggle-sidebar-btn:hover {
+        background: rgba(0, 229, 204, 0.3);
+      }
+
+      .sidebar-profile {
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--bg-border);
+        text-align: center;
+      }
+      .admin-avatar {
+        width: 56px;
+        height: 56px;
+        background: rgba(42, 181, 192, 0.15);
+        border-radius: 50%;
+        border: 2px solid var(--accent-teal);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin: 0 auto 8px;
+        overflow: hidden;
+      }
+      .admin-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+      }
+      .admin-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-white);
+      }
+      .role-badge {
+        display: inline-block;
+        background: linear-gradient(
+          135deg,
+          var(--accent-teal),
+          var(--accent-teal-hover)
+        );
+        color: var(--bg-main);
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 20px;
+        margin-top: 4px;
+      }
+      .notif-bell-btn {
+        background: rgba(42, 181, 192, 0.15);
+        border: none;
+        color: var(--text-white);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        transition: 0.2s;
+        position: relative;
+        margin: 6px auto 0;
+      }
+      .notif-bell-btn:hover {
+        background: rgba(0, 229, 204, 0.3);
+      }
+      .notif-bell-badge {
+        position: absolute;
+        top: -3px;
+        right: -3px;
+        background: var(--accent-purple);
+        color: white;
+        font-size: 8px;
+        font-weight: 700;
+        min-width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 2px;
+      }
+
+      .sidebar-nav {
+        flex: 1;
+        padding: 10px 8px;
+        overflow-y: auto;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+        color: var(--text-body);
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 2px;
+        white-space: nowrap;
+      }
+      .nav-item i {
+        font-size: 15px;
+        width: 18px;
+        flex-shrink: 0;
+      }
+      .nav-item:hover {
+        background: rgba(42, 181, 192, 0.15);
+        color: var(--accent-teal-hover);
+      }
+      .nav-item.active {
+        background: rgba(42, 181, 192, 0.2);
+        color: var(--accent-teal-hover);
+        border-left: 3px solid var(--accent-teal);
+        padding-left: 9px;
+      }
+
+      .sidebar-footer {
+        padding: 10px 10px 16px;
+      }
+      .logout-btn {
+        width: 100%;
+        padding: 10px;
+        background: rgba(42, 181, 192, 0.1);
+        color: var(--text-white);
+        border: 1px solid var(--bg-border);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: 0.2s;
+        white-space: nowrap;
+      }
+      .logout-btn:hover {
+        background: #c0392b;
+        border-color: #c0392b;
+      }
+
+      .main {
+        flex: 1;
+        min-width: 0;
+        overflow-y: auto;
+        padding: 26px;
+        background: var(--bg-main);
+      }
+
+      .page-header {
+        margin-bottom: 25px;
+      }
+      .page-header h1 {
+        font-size: 26px;
+        color: var(--text-heading);
+        font-weight: 700;
+      }
+      .page-header p {
+        color: var(--text-body);
+        font-size: 13px;
+        margin-top: 4px;
+      }
+
+      .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+      .chart-card {
+        background: var(--bg-card);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--bg-border);
+      }
+      .chart-card h3 {
+        font-size: 16px;
+        color: var(--text-white);
+        margin-bottom: 20px;
+        font-weight: 600;
+      }
+      .chart-container {
+        height: 280px;
+        position: relative;
+      }
+
+      .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+      }
+      .mini-stat {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        text-align: center;
+        border: 1px solid var(--bg-border);
+        transition: 0.2s;
+      }
+      .mini-stat:hover {
+        border-color: var(--accent-teal);
+      }
+      .mini-stat h4 {
+        font-size: 12px;
+        color: var(--text-body);
+        margin-bottom: 8px;
+      }
+      .mini-stat .val {
+        font-size: 26px;
+        font-weight: 700;
+        color: var(--text-heading);
+      }
+
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-body);
+      }
+      .spinner {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(42, 181, 192, 0.2);
+        border-top: 3px solid var(--accent-teal);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <script src="theme.js"></script>
+
+  <body>
+    <div
+      class="sidebar"
+      id="adminSidebar">
+      <div class="sidebar-brand">
+        <div class="brand-left">
+          <div class="brand-icon">
+            <img
+              src="images/shield.png"
+              alt="shield"
+              style="width: 22px; height: 22px" />
+          </div>
+          <div class="brand-text">
+            <h2>Admin Panel</h2>
+            <p>Phishing Detector</p>
+          </div>
+        </div>
+        <button
+          class="toggle-sidebar-btn"
+          onclick="toggleAdminSidebar()">
+          <img
+            src="images/toggle (1).png"
+            alt="menu"
+            style="width: 18px; height: 18px" />
+        </button>
+      </div>
+      <div class="sidebar-profile">
+        <div
+          class="admin-avatar"
+          id="sidebarAvatarDiv">
+          <img
+            src="images/software-engineer.png"
+            alt="admin"
+            id="sidebarAvatarIcon"
+            style="width: 56px; height: 56px; border-radius: 50%" />
+        </div>
+        <div
+          class="admin-name"
+          id="adminName">
+          admin
+        </div>
+        <div class="role-badge">ADMIN</div>
+        <button
+          class="notif-bell-btn"
+          onclick="nav('admin_notifications.html')"
+          title="Notifications">
+          <img
+            src="images/notification-bell (1).png"
+            alt="notifications"
+            style="width: 18px; height: 18px" />
+          <span
+            class="notif-bell-badge"
+            id="notifBadge"
+            style="display: none"
+            >0</span
+          >
+        </button>
+      </div>
+      <div class="sidebar-nav">
+        <div
+          class="nav-item"
+          onclick="nav('admin_dashboard.html')">
+          <i class="fas fa-th-large"></i
+          ><span class="nav-label"> Dashboard</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('manage_users.html')">
+          <i class="fas fa-users"></i
+          ><span class="nav-label"> Manage Users</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('email_scans.html')">
+          <i class="fas fa-envelope-open-text"></i
+          ><span class="nav-label"> Email Scans</span>
+        </div>
+        <div class="nav-item active">
+          <i class="fas fa-chart-line"></i
+          ><span class="nav-label"> Analytics</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('admin_feedback.html')">
+          <i class="fas fa-comments"></i
+          ><span class="nav-label"> Feedback</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('admin_model.html')">
+          <i class="fas fa-brain"></i><span class="nav-label"> ML Model</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('admin_profile.html')">
+          <i class="fas fa-user-circle"></i
+          ><span class="nav-label"> My Profile</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('admin_settings.html')">
+          <i class="fas fa-cog"></i><span class="nav-label"> Settings</span>
+        </div>
+      </div>
+      <div class="sidebar-footer">
+        <button
+          class="logout-btn"
+          onclick="adminLogout()">
+          <img
+            src="images/rename (1).png"
+            alt="notifications"
+            style="width: 25px; height: 25px" />
+          <span class="logout-text"> Logout</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="page-header">
+        <h1>Analytics</h1>
+        <p>System performance and usage analytics</p>
+      </div>
+      <div
+        class="stats-row"
+        id="statsRow">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>Daily Scans (Last 7 Days)</h3>
+          <div class="chart-container"><canvas id="dailyChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Risk Level Distribution</h3>
+          <div class="chart-container"><canvas id="riskChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Safe vs Phishing Ratio</h3>
+          <div class="chart-container"><canvas id="ratioChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API = 'http://localhost:8000';
+      let dailyChart, riskChart, ratioChart;
+
+      function nav(url) {
+        window.location.href = url;
+      }
+      function adminLogout() {
+        if (confirm('Logout from admin panel?')) {
+          localStorage.removeItem('admin');
+          localStorage.removeItem('adminLoggedIn');
+          window.location.href = 'admin_login.html';
+        }
+      }
+      function checkAdminAuth() {
+        const admin = JSON.parse(localStorage.getItem('admin') || 'null');
+        if (!admin || admin.role !== 'admin') {
+          window.location.href = 'admin_login.html';
+          return null;
+        }
+        const nameEl = document.getElementById('adminName');
+        if (nameEl) nameEl.textContent = admin.username || 'admin';
+        return admin;
+      }
+      function toggleAdminSidebar() {
+        const sb = document.getElementById('adminSidebar');
+        if (sb) {
+          sb.classList.toggle('collapsed');
+          localStorage.setItem(
+            'adminSidebarCollapsed',
+            sb.classList.contains('collapsed') ? '1' : '0',
+          );
+        }
+      }
+      function initAdminSidebar() {
+        const collapsed = localStorage.getItem('adminSidebarCollapsed') === '1';
+        const sb = document.getElementById('adminSidebar');
+        if (collapsed && sb) sb.classList.add('collapsed');
+        const saved = localStorage.getItem('adminAvatar');
+        const div = document.getElementById('sidebarAvatarDiv');
+        if (saved && div)
+          div.innerHTML =
+            '<img src="' +
+            saved +
+            '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+      }
+
+      function renderStats(stats) {
+        const phishPct =
+          stats.total_scans > 0
+            ? ((stats.phishing_detected / stats.total_scans) * 100).toFixed(1)
+            : 0;
+        document.getElementById('statsRow').innerHTML = `
+                <div class="mini-stat"><h4>Total Users</h4><div class="val">${stats.total_users || 0}</div></div>
+                <div class="mini-stat"><h4>Total Scans</h4><div class="val">${stats.total_scans || 0}</div></div>
+                <div class="mini-stat"><h4>Phishing Rate</h4><div class="val" style="color:#ff6b6b">${phishPct}%</div></div>
+                <div class="mini-stat"><h4>Today's Scans</h4><div class="val" style="color:var(--accent-teal)">${stats.today_scans || 0}</div></div>
+                <div class="mini-stat"><h4>Active Today</h4><div class="val" style="color:var(--accent-teal-hover)">${stats.active_users_today || 0}</div></div>`;
+      }
+
+      async function renderCharts(analytics, stats) {
+        if (typeof Chart === 'undefined') {
+          return;
+        }
+        const daily = analytics.daily_scans || [];
+        const labels = daily.map((d) =>
+          d.date
+            ? new Date(d.date).toLocaleDateString('en', {
+                month: 'short',
+                day: 'numeric',
+              })
+            : '',
+        );
+        const phishingData = daily.map((d) => d.phishing || 0);
+        const safeData = daily.map((d) => d.safe || 0);
+
+        if (dailyChart instanceof Chart) dailyChart.destroy();
+        if (riskChart instanceof Chart) riskChart.destroy();
+        if (ratioChart instanceof Chart) ratioChart.destroy();
+
+        Chart.defaults.color = '#b0cce0';
+        Chart.defaults.borderColor = '#1a3d6b';
+
+        const dailyCanvas = document.getElementById('dailyChart');
+        if (dailyCanvas) {
+          dailyChart = new Chart(dailyCanvas, {
+            type: 'bar',
+            data: {
+              labels,
+              datasets: [
+                {
+                  label: 'Phishing',
+                  data: phishingData,
+                  backgroundColor: 'rgba(231,76,60,0.7)',
+                  borderRadius: 8,
+                },
+                {
+                  label: 'Safe',
+                  data: safeData,
+                  backgroundColor: 'rgba(42,181,192,0.7)',
+                  borderRadius: 8,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                y: { beginAtZero: true, grid: { color: '#1a3d6b' } },
+                x: { grid: { color: '#1a3d6b' } },
+              },
+            },
+          });
+        }
+
+        const riskDist = analytics.risk_distribution || [];
+        const riskCanvas = document.getElementById('riskChart');
+        if (riskCanvas && riskDist.length > 0) {
+          riskChart = new Chart(riskCanvas, {
+            type: 'doughnut',
+            data: {
+              labels: riskDist.map((r) =>
+                (r.risk_level || 'unknown').toUpperCase(),
+              ),
+              datasets: [
+                {
+                  data: riskDist.map((r) => r.count || 0),
+                  backgroundColor: riskDist.map((r) =>
+                    r.risk_level === 'high'
+                      ? '#e74c3c'
+                      : r.risk_level === 'medium'
+                        ? '#7b5ea7'
+                        : '#2ab5c0',
+                  ),
+                  borderWidth: 0,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { position: 'bottom', labels: { color: '#b0cce0' } },
+              },
+            },
+          });
+        }
+
+        const ratioCanvas = document.getElementById('ratioChart');
+        if (ratioCanvas) {
+          ratioChart = new Chart(ratioCanvas, {
+            type: 'pie',
+            data: {
+              labels: ['Safe Emails', 'Phishing Emails'],
+              datasets: [
+                {
+                  data: [stats.safe_emails || 0, stats.phishing_detected || 0],
+                  backgroundColor: ['#2ab5c0', '#e74c3c'],
+                  borderWidth: 0,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { position: 'bottom', labels: { color: '#b0cce0' } },
+              },
+            },
+          });
+        }
+      }
+
+      async function loadAnalytics() {
+        const admin = checkAdminAuth();
+        if (!admin) return;
+        const headers = { Authorization: `Bearer ${admin.access_token}` };
+        try {
+          const [statsRes, analyticsRes] = await Promise.all([
+            fetch(`${API}/api/admin/stats`, { headers }),
+            fetch(`${API}/api/admin/analytics`, { headers }),
+          ]);
+          const statsData = await statsRes.json();
+          const analyticsData = await analyticsRes.json();
+          if (statsData.success) renderStats(statsData.stats);
+          else
+            document.getElementById('statsRow').innerHTML =
+              '<div class="loading" style="color:#ff6b6b">Failed to load stats</div>';
+          if (analyticsData.success)
+            await renderCharts(analyticsData.analytics, statsData.stats || {});
+        } catch (error) {
+          document.getElementById('statsRow').innerHTML =
+            `<div class="loading" style="color:#ff6b6b">Cannot connect to backend at ${API}</div>`;
+        }
+      }
+
+      window.addEventListener('DOMContentLoaded', function () {
+        initAdminSidebar();
+        checkAdminAuth();
+        loadAnalytics();
+      });
+    </script>
+  </body>
+</html>

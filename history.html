@@ -1,0 +1,1103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>Scan History AI Phishing Detector</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet" />
+
+    <style>
+      :root {
+        --bg-primary: #0a1628;
+        --bg-secondary: #0f2040;
+        --border: #1a3d6b;
+        --accent-teal: #2ab5c0;
+        --accent-teal-bright: #00e5cc;
+        --accent-purple: #7b5ea7;
+        --text-body: #b0cce0;
+        --text-heading: #00d4bb;
+        --text-white: #e8f4f8;
+        --gradient: linear-gradient(
+          135deg,
+          #2ab5c0 0%,
+          #7b5ea7 60%,
+          #00e5cc 100%
+        );
+        --sidebar-gradient: linear-gradient(180deg, #0a1f3d 0%, #0d2a50 100%);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+      }
+
+      body {
+        background: var(--bg-primary);
+        display: flex;
+        min-height: 100vh;
+        width: 100%;
+        color: var(--text-body);
+      }
+
+      .sidebar {
+        width: 280px;
+        background: var(--sidebar-gradient);
+        color: var(--text-white);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        min-height: 100vh;
+        position: relative;
+        border-right: 1px solid rgba(42, 181, 192, 0.15);
+      }
+
+      .sidebar.collapsed {
+        width: 80px;
+      }
+
+      .sidebar.collapsed .sidebar-menu span,
+      .sidebar.collapsed .profile-info {
+        display: none;
+      }
+
+      .toggle-btn {
+        position: absolute;
+        right: -12px;
+        top: 30px;
+        width: 24px;
+        height: 24px;
+        background: var(--accent-teal);
+        border: 2px solid var(--bg-primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #0a1628;
+        font-size: 12px;
+        z-index: 200;
+      }
+
+      .profile-section {
+        padding: 25px 20px;
+        text-align: center;
+        border-bottom: 1px solid rgba(42, 181, 192, 0.15);
+      }
+
+      .profile-img {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        border: 3px solid rgba(42, 181, 192, 0.5);
+        margin-bottom: 10px;
+        object-fit: cover;
+      }
+
+      .profile-info h3 {
+        font-size: 16px;
+        margin-bottom: 3px;
+        color: var(--text-white);
+      }
+      .profile-info p {
+        font-size: 12px;
+        opacity: 0.8;
+        color: var(--text-body);
+      }
+
+      .sidebar-menu {
+        padding: 12px 0;
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 13px 20px;
+        color: var(--text-body);
+        cursor: pointer;
+        transition: 0.3s;
+        margin: 3px 8px;
+        border-radius: 10px;
+      }
+
+      .menu-item i {
+        width: 28px;
+        font-size: 16px;
+      }
+      .menu-item span {
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .menu-item:hover {
+        background: rgba(42, 181, 192, 0.12);
+        color: var(--accent-teal-bright);
+      }
+
+      .menu-item.active {
+        background: rgba(42, 181, 192, 0.18);
+        color: var(--accent-teal-bright);
+        border-left: 4px solid var(--accent-teal-bright);
+      }
+
+      .logout-btn {
+        margin: 10px 12px 15px;
+        background: rgba(42, 181, 192, 0.1);
+        color: var(--text-body);
+        border: 1px solid rgba(42, 181, 192, 0.25);
+        padding: 11px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: 0.2s;
+      }
+
+      .logout-btn:hover {
+        background: rgba(220, 53, 69, 0.2);
+        border-color: #dc3545;
+        color: #ff6b8a;
+      }
+
+      .main {
+        flex: 1;
+        padding: 25px;
+        overflow-y: auto;
+        min-width: 0;
+        background: var(--bg-primary);
+      }
+
+      .page-header {
+        margin-bottom: 22px;
+      }
+      .page-header h1 {
+        font-size: 26px;
+        color: var(--text-heading);
+        font-weight: 700;
+      }
+      .page-header p {
+        color: var(--text-body);
+        font-size: 14px;
+        margin-top: 4px;
+      }
+
+      .filter-bar {
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 18px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        box-shadow: 0 2px 14px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(42, 181, 192, 0.12);
+      }
+
+      .search-box {
+        flex: 1;
+        min-width: 200px;
+        display: flex;
+        align-items: center;
+        background: rgba(10, 22, 40, 0.6);
+        border-radius: 8px;
+        padding: 9px 14px;
+        gap: 8px;
+        border: 1px solid rgba(42, 181, 192, 0.18);
+      }
+
+      .search-box input {
+        border: none;
+        background: transparent;
+        outline: none;
+        width: 100%;
+        font-size: 14px;
+        color: var(--text-white);
+      }
+
+      .search-box input::placeholder {
+        color: rgba(176, 204, 224, 0.45);
+      }
+
+      select {
+        padding: 9px 12px;
+        border: 1px solid rgba(42, 181, 192, 0.22);
+        border-radius: 8px;
+        outline: none;
+        font-size: 13px;
+        background: rgba(10, 22, 40, 0.6);
+        color: var(--text-body);
+      }
+
+      select option {
+        background: #0f2040;
+        color: var(--text-body);
+      }
+
+      .btn {
+        padding: 9px 18px;
+        border: none;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .btn-primary {
+        background: var(--gradient);
+        color: #0a1628;
+        box-shadow: 0 4px 14px rgba(42, 181, 192, 0.22);
+      }
+      .btn-outline {
+        background: transparent;
+        border: 1px solid rgba(42, 181, 192, 0.35);
+        color: var(--accent-teal-bright);
+      }
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .stat-card {
+        background: var(--bg-secondary);
+        border-radius: 10px;
+        padding: 16px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(42, 181, 192, 0.12);
+      }
+
+      .stat-card h3 {
+        font-size: 12px;
+        color: var(--text-body);
+        margin-bottom: 6px;
+      }
+      .stat-number {
+        font-size: 26px;
+        font-weight: 700;
+        color: var(--text-heading);
+      }
+
+      .table-wrap {
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        padding: 18px;
+        box-shadow: 0 2px 14px rgba(0, 0, 0, 0.2);
+        overflow-x: auto;
+        border: 1px solid rgba(42, 181, 192, 0.12);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th {
+        text-align: left;
+        padding: 12px 10px;
+        color: var(--accent-teal);
+        font-weight: 600;
+        font-size: 13px;
+        border-bottom: 2px solid rgba(42, 181, 192, 0.15);
+      }
+
+      td {
+        padding: 12px 10px;
+        border-bottom: 1px solid rgba(42, 181, 192, 0.07);
+        font-size: 13px;
+        color: var(--text-body);
+      }
+      tr {
+        cursor: pointer;
+      }
+      tr:hover td {
+        background: rgba(42, 181, 192, 0.05);
+      }
+
+      .badge {
+        padding: 4px 11px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+      }
+      .badge-safe {
+        background: rgba(74, 222, 128, 0.15);
+        color: #4ade80;
+      }
+      .badge-phishing {
+        background: rgba(255, 107, 138, 0.15);
+        color: #ff6b8a;
+      }
+      .badge-high {
+        background: rgba(255, 107, 138, 0.15);
+        color: #ff6b8a;
+      }
+      .badge-medium {
+        background: rgba(251, 191, 36, 0.15);
+        color: #fbbf24;
+      }
+      .badge-low {
+        background: rgba(74, 222, 128, 0.12);
+        color: #4ade80;
+      }
+
+      .action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        padding: 4px 8px;
+        border-radius: 5px;
+        color: var(--accent-teal);
+        transition: 0.2s;
+      }
+
+      .action-btn:hover {
+        background: rgba(42, 181, 192, 0.12);
+      }
+      .action-btn.del {
+        color: #ff6b8a;
+      }
+      .action-btn.del:hover {
+        background: rgba(255, 107, 138, 0.12);
+      }
+
+      .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 18px;
+      }
+
+      .page-btn {
+        width: 36px;
+        height: 36px;
+        border: 1px solid rgba(42, 181, 192, 0.22);
+        background: transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        color: var(--text-body);
+        transition: 0.2s;
+      }
+
+      .page-btn:hover,
+      .page-btn.active {
+        background: rgba(42, 181, 192, 0.18);
+        color: var(--accent-teal-bright);
+        border-color: var(--accent-teal);
+      }
+      .page-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 50px 20px;
+        color: var(--text-body);
+        opacity: 0.6;
+      }
+
+      .spinner {
+        border: 3px solid rgba(42, 181, 192, 0.15);
+        border-top: 3px solid var(--accent-teal);
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        animation: spin 1s linear infinite;
+        margin: 30px auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Modal */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(5, 12, 25, 0.88);
+        backdrop-filter: blur(5px);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow-y: auto;
+      }
+
+      .modal-container {
+        background: var(--bg-secondary);
+        border-radius: 20px;
+        max-width: 900px;
+        width: 90%;
+        max-height: 85vh;
+        overflow-y: auto;
+        padding: 25px;
+        position: relative;
+        margin: 20px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(42, 181, 192, 0.18);
+      }
+
+      .modal-container::-webkit-scrollbar {
+        width: 8px;
+      }
+      .modal-container::-webkit-scrollbar-track {
+        background: rgba(10, 22, 40, 0.5);
+        border-radius: 10px;
+      }
+      .modal-container::-webkit-scrollbar-thumb {
+        background: var(--accent-teal);
+        border-radius: 10px;
+      }
+
+      .feature-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .feature-table th {
+        background: rgba(42, 181, 192, 0.18);
+        color: var(--accent-teal-bright);
+        padding: 10px;
+        text-align: left;
+      }
+      .feature-table td {
+        padding: 10px;
+        border-bottom: 1px solid rgba(42, 181, 192, 0.08);
+        color: var(--text-body);
+      }
+
+      .impact-positive {
+        color: #ff6b8a;
+      }
+      .impact-negative {
+        color: #4ade80;
+      }
+
+      .strength-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+      }
+      .strength-very-strong {
+        background: rgba(255, 107, 138, 0.15);
+        color: #ff6b8a;
+      }
+      .strength-strong {
+        background: rgba(251, 191, 36, 0.15);
+        color: #fbbf24;
+      }
+      .strength-moderate {
+        background: rgba(42, 181, 192, 0.15);
+        color: var(--accent-teal-bright);
+      }
+      .strength-weak {
+        background: rgba(74, 222, 128, 0.12);
+        color: #4ade80;
+      }
+
+      .summary-box {
+        background: rgba(42, 181, 192, 0.08);
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(42, 181, 192, 0.15);
+      }
+
+      .summary-box h3 {
+        color: var(--text-heading);
+        margin-bottom: 8px;
+      }
+      .summary-box p {
+        color: var(--text-body);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .metadata-box {
+        background: rgba(10, 22, 40, 0.5);
+        padding: 15px;
+        border-radius: 12px;
+        margin-top: 15px;
+        border: 1px solid rgba(42, 181, 192, 0.1);
+      }
+
+      .metadata-box h3 {
+        color: var(--text-heading);
+        margin-bottom: 8px;
+      }
+
+      .metadata-tag {
+        background: rgba(42, 181, 192, 0.12);
+        color: var(--accent-teal-bright);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        display: inline-block;
+        margin: 5px;
+        border: 1px solid rgba(42, 181, 192, 0.2);
+      }
+
+      .result-card {
+        flex: 1;
+        min-width: 150px;
+        background: rgba(10, 22, 40, 0.5);
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(42, 181, 192, 0.12);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div
+      class="sidebar"
+      id="sidebar">
+      <div
+        class="toggle-btn"
+        onclick="toggleSidebar()">
+        <img
+          src="images/arrow (5).png"
+          alt="menu"
+          style="width: 18px; height: 18px" />
+      </div>
+      <div class="profile-section">
+        <img
+          src="images/u-profile (2).jpg"
+          class="profile-img"
+          id="sidebarAvatar" />
+        <div class="profile-info">
+          <h3 id="sidebarName">Loading...</h3>
+          <p id="sidebarEmail"></p>
+        </div>
+      </div>
+      <div class="sidebar-menu">
+        <div
+          class="menu-item"
+          onclick="nav('user_dashboard.html')">
+          <span>Dashboard</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('email_check.html')">
+          <span>Check Email</span>
+        </div>
+        <div class="menu-item active"><span>My History</span></div>
+        <div
+          class="menu-item"
+          onclick="nav('reports.html')">
+          <span>My Reports</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('user_feedback.html')">
+          <span>Feedback</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('pattern.html')">
+          <span>Patterns</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('user_profile.html')">
+          <span>Profile</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('user_settings.html')">
+          <span>Settings</span>
+        </div>
+      </div>
+      <button
+        class="logout-btn"
+        onclick="handleLogout()">
+        <img
+          src="images/rename (2).png"
+          alt="menu"
+          style="width: 25px; height: 25px" />
+        <span>Logout</span>
+      </button>
+    </div>
+
+    <div class="main">
+      <div class="page-header">
+        <h1>My Scan History</h1>
+        <p>All your email analysis results</p>
+      </div>
+      <div class="filter-bar">
+        <div class="search-box">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search emails..."
+            oninput="applyFilters()" />
+        </div>
+        <select
+          id="resultFilter"
+          onchange="applyFilters()">
+          <option value="all">All Results</option>
+          <option value="safe">Safe Only</option>
+          <option value="phishing">Phishing Only</option>
+        </select>
+        <select
+          id="riskFilter"
+          onchange="applyFilters()">
+          <option value="all">All Risk</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+        <button
+          class="btn btn-outline"
+          onclick="clearFilters()">
+          Clear
+        </button>
+        <button
+          class="btn btn-primary"
+          onclick="exportCSV()">
+          Export
+        </button>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Total Scans</h3>
+          <div
+            class="stat-number"
+            id="statTotal">
+            -
+          </div>
+        </div>
+        <div class="stat-card">
+          <h3>Phishing</h3>
+          <div
+            class="stat-number"
+            id="statPhishing"
+            style="color: #ff6b8a">
+            -
+          </div>
+        </div>
+        <div class="stat-card">
+          <h3>Safe</h3>
+          <div
+            class="stat-number"
+            id="statSafe"
+            style="color: #4ade80">
+            -
+          </div>
+        </div>
+        <div class="stat-card">
+          <h3>High Risk</h3>
+          <div
+            class="stat-number"
+            id="statHigh"
+            style="color: #fbbf24">
+            -
+          </div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div id="tableContent"><div class="spinner"></div></div>
+        <div
+          class="pagination"
+          id="pagination"></div>
+      </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+      const API_BASE = 'http://localhost:8000';
+      let allScans = [],
+        filtered = [],
+        currentPage = 1;
+      const PER_PAGE = 15;
+
+      function nav(url) {
+        window.location.href = url;
+      }
+      function handleLogout() {
+        localStorage.removeItem('user');
+        window.location.href = 'user_login.html';
+      }
+      function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('collapsed');
+      }
+
+      function getUser() {
+        try {
+          const userStr = localStorage.getItem('user');
+          if (!userStr) return null;
+          return JSON.parse(userStr);
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function isTokenExpired(token) {
+        if (!token) return true;
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          return Date.now() > payload.exp * 1000;
+        } catch (e) {
+          return true;
+        }
+      }
+
+      window.onload = async function () {
+        const user = getUser();
+        if (!user || !user.access_token || isTokenExpired(user.access_token)) {
+          localStorage.removeItem('user');
+          window.location.href = 'user_login.html';
+          return;
+        }
+        document.getElementById('sidebarName').textContent =
+          user.username || 'User';
+        document.getElementById('sidebarEmail').textContent = user.email || '';
+        await loadScans(user.user_id);
+      };
+
+      async function loadScans(userId) {
+        try {
+          let page = 1;
+          allScans = [];
+          while (true) {
+            const data = await API.getUserScans(userId, 100, page);
+            const scans = data.scans || [];
+            allScans = allScans.concat(scans);
+            if (scans.length < 100) break;
+            page++;
+          }
+          updateStats();
+          applyFilters();
+        } catch (e) {
+          document.getElementById('tableContent').innerHTML =
+            '<div class="empty-state"><p>Could not load scans.</p></div>';
+        }
+      }
+
+      function updateStats() {
+        const total = allScans.length;
+        const phishing = allScans.filter(
+          (s) => s.prediction_result === 'phishing',
+        ).length;
+        const highRisk = allScans.filter((s) => s.risk_level === 'high').length;
+        document.getElementById('statTotal').textContent = total;
+        document.getElementById('statPhishing').textContent = phishing;
+        document.getElementById('statSafe').textContent = total - phishing;
+        document.getElementById('statHigh').textContent = highRisk;
+      }
+
+      function applyFilters() {
+        const search = document
+          .getElementById('searchInput')
+          .value.toLowerCase();
+        const result = document.getElementById('resultFilter').value;
+        const risk = document.getElementById('riskFilter').value;
+        filtered = allScans.filter((s) => {
+          const text = (s.original_text || '').toLowerCase();
+          return (
+            (!search || text.includes(search)) &&
+            (result === 'all' || s.prediction_result === result) &&
+            (risk === 'all' || s.risk_level === risk)
+          );
+        });
+        currentPage = 1;
+        renderTable();
+      }
+
+      function clearFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('resultFilter').value = 'all';
+        document.getElementById('riskFilter').value = 'all';
+        applyFilters();
+      }
+
+      function renderTable() {
+        const tc = document.getElementById('tableContent');
+        if (!filtered.length) {
+          tc.innerHTML =
+            '<div class="empty-state"><p>No scans found</p><button class="btn btn-primary" onclick="nav(\'email_check.html\')" style="margin-top:15px">Analyze First Email</button></div>';
+          document.getElementById('pagination').innerHTML = '';
+          return;
+        }
+        const start = (currentPage - 1) * PER_PAGE;
+        const pageScans = filtered.slice(start, start + PER_PAGE);
+        const totalPages = Math.ceil(filtered.length / PER_PAGE);
+
+        tc.innerHTML = `<table style="width:100%">
+          <thead><tr>
+            <th>#</th><th>Date</th><th>Email Preview</th><th>Result</th><th>Confidence</th><th>Risk</th><th>Actions</th>
+          </tr></thead>
+          <tbody>
+            ${pageScans
+              .map((s) => {
+                const preview =
+                  (s.original_text || '').substring(0, 65) + '...';
+                const date = s.scan_timestamp
+                  ? new Date(s.scan_timestamp).toLocaleString()
+                  : '-';
+                const isP = s.prediction_result === 'phishing';
+                const riskLevel = s.risk_level || 'low';
+                return `<tr onclick="viewScan(${s.scan_id})" style="cursor:pointer">
+                <td style="color:rgba(176,204,224,0.5)">#${s.scan_id}</td>
+                <td style="white-space:nowrap;font-size:12px">${date}</td>
+                <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${preview}</td>
+                <td><span class="badge ${isP ? 'badge-phishing' : 'badge-safe'}">${isP ? 'Phishing' : 'Safe'}</span></td>
+                <td><strong style="color:var(--text-heading)">${s.confidence_score || 0}%</strong></td>
+                <td><span class="badge badge-${riskLevel}">${riskLevel.toUpperCase()}</span></td>
+                <td><button class="action-btn del" onclick="event.stopPropagation(); deleteScan(${s.scan_id})" title="Delete">Delete</button></td>
+              </tr>`;
+              })
+              .join('')}
+          </tbody>
+        </table>`;
+
+        let paginationHtml = '';
+        if (totalPages > 1) {
+          paginationHtml += `<button class="page-btn" onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>‹</button>`;
+          for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 2) {
+              paginationHtml += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+            } else if (Math.abs(i - currentPage) === 3) {
+              paginationHtml += `<button class="page-btn" disabled>...</button>`;
+            }
+          }
+          paginationHtml += `<button class="page-btn" onclick="goPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>›</button>`;
+        }
+        document.getElementById('pagination').innerHTML = paginationHtml;
+      }
+
+      function goPage(p) {
+        const total = Math.ceil(filtered.length / PER_PAGE);
+        if (p < 1 || p > total) return;
+        currentPage = p;
+        renderTable();
+      }
+
+      async function viewScan(scanId) {
+        const scan = allScans.find((s) => s.scan_id === scanId);
+        if (!scan) return;
+        showModalLoading();
+
+        try {
+          const user = getUser();
+          const response = await fetch(`${API_BASE}/api/explain`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${user.access_token}`,
+            },
+            body: JSON.stringify({
+              email_text: scan.original_text,
+              user_id: user.user_id,
+            }),
+          });
+          const shapData = await response.json();
+
+          let content = `
+            <div style="font-family:'Inter',sans-serif;color:var(--text-body)">
+              <div style="border-bottom:2px solid rgba(42,181,192,0.25);padding-bottom:10px;margin-bottom:15px;">
+                <h2 style="color:var(--text-heading)">Scan #${scan.scan_id}</h2>
+                <p style="color:var(--text-body)">${new Date(scan.scan_timestamp).toLocaleString()}</p>
+              </div>
+              <div style="display:flex;gap:15px;margin-bottom:20px;flex-wrap:wrap;">
+                <div class="result-card">
+                  <div style="font-size:12px;color:var(--text-body)">RESULT</div>
+                  <div style="font-size:24px;font-weight:700;color:${scan.prediction_result === 'phishing' ? '#ff6b8a' : '#4ade80'}">
+                    ${scan.prediction_result === 'phishing' ? 'PHISHING' : 'SAFE'}
+                  </div>
+                </div>
+                <div class="result-card">
+                  <div style="font-size:12px;color:var(--text-body)">CONFIDENCE</div>
+                  <div style="font-size:24px;font-weight:700;color:var(--text-heading)">${scan.confidence_score || 0}%</div>
+                </div>
+                <div class="result-card">
+                  <div style="font-size:12px;color:var(--text-body)">RISK LEVEL</div>
+                  <div style="font-size:24px;font-weight:700;color:${scan.risk_level === 'high' ? '#ff6b8a' : scan.risk_level === 'medium' ? '#fbbf24' : '#4ade80'}">
+                    ${(scan.risk_level || 'LOW').toUpperCase()}
+                  </div>
+                </div>
+              </div>`;
+
+          if (shapData.success && shapData.explanation) {
+            const exp = shapData.explanation;
+            const topFeatures = exp.top_features || [];
+            let humanReadableMsg = '';
+            if (scan.prediction_result === 'phishing') {
+              humanReadableMsg = `This email was classified as <strong style="color:#ff6b8a">PHISHING</strong> because it contains suspicious indicators. ${topFeatures
+                .slice(0, 3)
+                .map((f) => f.feature)
+                .join(
+                  ', ',
+                )} ${topFeatures.length > 3 ? 'and other suspicious patterns' : ''} were detected.`;
+            } else {
+              humanReadableMsg = `This email was classified as <strong style="color:#4ade80">SAFE</strong>. No significant phishing indicators were detected.`;
+            }
+            content += `
+              <div class="summary-box">
+                <h3>📋 Why this classification?</h3>
+                <p>${humanReadableMsg}</p>
+                ${exp.summary ? `<p style="margin-top:10px">${exp.summary}</p>` : ''}
+              </div>`;
+            if (topFeatures.length > 0) {
+              content += `
+                <h3 style="color:var(--text-heading);margin-bottom:10px">🔍 Top Contributing Factors</h3>
+                <table class="feature-table">
+                  <thead><tr><th>Feature</th><th>SHAP Value</th><th>Impact</th><th>Strength</th></tr></thead>
+                  <tbody>
+                    ${topFeatures
+                      .map(
+                        (f) => `<tr>
+                      <td><strong style="color:var(--text-white)">${f.feature}</strong></td>
+                      <td>${f.shap_value}</td>
+                      <td class="${f.impact === 'phishing' ? 'impact-positive' : 'impact-negative'}">${f.impact === 'phishing' ? '🔴 Phishing' : '🟢 Safe'}</td>
+                      <td><span class="strength-badge strength-${(f.strength || 'moderate').replace(' ', '-')}">${f.strength || 'moderate'}</span></td>
+                    </tr>`,
+                      )
+                      .join('')}
+                  </tbody>
+                </table>`;
+            }
+            if (exp.metadata && Object.keys(exp.metadata).length > 0) {
+              const md = exp.metadata;
+              content += `<div class="metadata-box"><h3>📊 Email Statistics</h3><div>`;
+              if (md.url_count)
+                content += `<span class="metadata-tag">🔗 ${md.url_count} URL(s)</span>`;
+              if (md.exclamation_count)
+                content += `<span class="metadata-tag">❗ ${md.exclamation_count} exclamation marks</span>`;
+              if (md.uppercase_ratio > 0.3)
+                content += `<span class="metadata-tag">🔠 ${(md.uppercase_ratio * 100).toFixed(0)}% uppercase</span>`;
+              if (md.word_count)
+                content += `<span class="metadata-tag">📝 ${md.word_count} words</span>`;
+              if (
+                md.found_phishing_keywords &&
+                md.found_phishing_keywords.length
+              )
+                content += `<span class="metadata-tag">⚠️ Keywords: ${md.found_phishing_keywords.slice(0, 3).join(', ')}</span>`;
+              content += `</div></div>`;
+            }
+          } else {
+            content += `
+              <div class="summary-box">
+                <h3 style="color:#fbbf24">⚠️ SHAP Explanation Not Available</h3>
+                <p>${shapData.explanation || 'Could not generate detailed explanation for this scan.'}</p>
+              </div>
+              <div class="metadata-box">
+                <h3>📝 Email Preview</h3>
+                <p style="font-size:13px;line-height:1.5">${(scan.original_text || '').substring(0, 600)}${(scan.original_text || '').length > 600 ? '...' : ''}</p>
+              </div>`;
+          }
+
+          content += `
+            <div style="margin-top:20px;text-align:right">
+              <button class="btn btn-outline" onclick="closeModal()" style="margin-right:10px">Close</button>
+              <button class="btn btn-primary" onclick="window.location.href='email_check.html'">Analyze New Email</button>
+            </div>
+          </div>`;
+          showModal(content);
+        } catch (error) {
+          let fallbackContent = `
+            <div style="font-family:'Inter',sans-serif;color:var(--text-body)">
+              <div style="border-bottom:2px solid rgba(42,181,192,0.25);padding-bottom:10px;margin-bottom:15px;">
+                <h2 style="color:var(--text-heading)">Scan #${scan.scan_id}</h2>
+                <p>${new Date(scan.scan_timestamp).toLocaleString()}</p>
+              </div>
+              <div style="display:flex;gap:15px;margin-bottom:20px">
+                <div class="result-card"><div>RESULT</div><div style="font-size:24px;font-weight:700;color:${scan.prediction_result === 'phishing' ? '#ff6b8a' : '#4ade80'}">${scan.prediction_result === 'phishing' ? 'PHISHING' : 'SAFE'}</div></div>
+                <div class="result-card"><div>CONFIDENCE</div><div style="font-size:24px;font-weight:700;color:var(--text-heading)">${scan.confidence_score || 0}%</div></div>
+                <div class="result-card"><div>RISK</div><div style="font-size:24px;font-weight:700">${(scan.risk_level || 'LOW').toUpperCase()}</div></div>
+              </div>
+              <div class="summary-box"><h3 style="color:#fbbf24">⚠️ Could not load SHAP explanation</h3><p>${error.message || 'Please try again later.'}</p></div>
+              <div style="margin-top:20px;text-align:right"><button class="btn btn-outline" onclick="closeModal()">Close</button></div>
+            </div>`;
+          showModal(fallbackContent);
+        }
+      }
+
+      function showModalLoading() {
+        showModal(
+          `<div style="text-align:center;padding:40px"><div class="spinner"></div><p style="margin-top:15px;color:var(--text-body)">Loading explanation...</p></div>`,
+        );
+      }
+
+      function showModal(content) {
+        let modal = document.getElementById('customModal');
+        if (modal) modal.remove();
+        modal = document.createElement('div');
+        modal.id = 'customModal';
+        modal.className = 'modal-overlay';
+        const container = document.createElement('div');
+        container.className = 'modal-container';
+        container.innerHTML = content;
+        modal.appendChild(container);
+        document.body.appendChild(modal);
+        modal.onclick = (e) => {
+          if (e.target === modal) closeModal();
+        };
+      }
+
+      function closeModal() {
+        const modal = document.getElementById('customModal');
+        if (modal) modal.remove();
+      }
+
+      async function deleteScan(id) {
+        if (!confirm('Delete this scan?')) return;
+        const user = getUser();
+        try {
+          await API.deleteScan(user.user_id, id);
+          allScans = allScans.filter((s) => s.scan_id !== id);
+          updateStats();
+          applyFilters();
+        } catch (e) {
+          alert('Failed to delete scan.');
+        }
+      }
+
+      function exportCSV() {
+        if (!filtered.length) {
+          alert('No scans to export');
+          return;
+        }
+        let csv = 'ID,Date,Result,Confidence,Risk,Preview\n';
+        filtered.forEach((s) => {
+          csv += `"${s.scan_id}","${s.scan_timestamp}","${s.prediction_result}","${s.confidence_score}%","${s.risk_level}","${(s.original_text || '').substring(0, 100).replace(/"/g, '""')}"\n`;
+        });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+        a.download = 'scan_history.csv';
+        a.click();
+      }
+    </script>
+  </body>
+</html>

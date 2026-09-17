@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>Admin Login AI Phishing Detection</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet" />
+    <style>
+      :root {
+        --bg-main: #0a1628;
+        --bg-card: #0f2040;
+        --bg-border: #1a3d6b;
+        --accent-teal: #2ab5c0;
+        --accent-teal-hover: #00e5cc;
+        --accent-purple: #7b5ea7;
+        --text-body: #b0cce0;
+        --text-heading: #00d4bb;
+        --text-white: #e8f4ff;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+      }
+
+      body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-main);
+        position: relative;
+        overflow: hidden;
+      }
+
+      body::before {
+        content: '';
+        position: absolute;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(
+          circle,
+          rgba(42, 181, 192, 0.08) 0%,
+          transparent 70%
+        );
+        border-radius: 50%;
+        top: -150px;
+        right: -150px;
+      }
+      body::after {
+        content: '';
+        position: absolute;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(
+          circle,
+          rgba(123, 94, 167, 0.07) 0%,
+          transparent 70%
+        );
+        border-radius: 50%;
+        bottom: -100px;
+        left: -100px;
+      }
+
+      .login-card {
+        background: var(--bg-card);
+        border-radius: 20px;
+        padding: 50px 40px;
+        width: 100%;
+        max-width: 420px;
+        margin: 20px;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+        position: relative;
+        z-index: 1;
+        border: 1px solid var(--bg-border);
+        animation: slideUp 0.5s ease;
+      }
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .logo {
+        text-align: center;
+        margin-bottom: 35px;
+      }
+      .logo .shield {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(
+          135deg,
+          rgba(42, 181, 192, 0.2),
+          rgba(0, 229, 204, 0.1)
+        );
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        border: 2px solid var(--accent-teal);
+        box-shadow: 0 0 30px rgba(42, 181, 192, 0.2);
+      }
+      .logo h1 {
+        font-size: 22px;
+        color: var(--text-heading);
+        font-weight: 700;
+      }
+      .logo p {
+        color: var(--text-body);
+        font-size: 13px;
+        margin-top: 5px;
+      }
+      .admin-badge {
+        background: rgba(42, 181, 192, 0.15);
+        color: var(--accent-teal-hover);
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+        margin-top: 10px;
+        letter-spacing: 1px;
+        border: 1px solid rgba(42, 181, 192, 0.3);
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+      .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-body);
+        margin-bottom: 8px;
+      }
+
+      .input-wrapper {
+        position: relative;
+      }
+      .input-wrapper i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--accent-teal);
+        font-size: 16px;
+        opacity: 0.7;
+      }
+      .input-wrapper input {
+        width: 100%;
+        padding: 14px 15px 14px 42px;
+        background: rgba(42, 181, 192, 0.06);
+        border: 2px solid var(--bg-border);
+        border-radius: 12px;
+        font-size: 14px;
+        transition: 0.3s;
+        color: var(--text-white);
+        font-family: 'Inter', sans-serif;
+      }
+      .input-wrapper input::placeholder {
+        color: rgba(176, 204, 224, 0.4);
+      }
+      .input-wrapper input:focus {
+        outline: none;
+        border-color: var(--accent-teal);
+        box-shadow: 0 0 0 4px rgba(42, 181, 192, 0.1);
+        background: rgba(42, 181, 192, 0.1);
+      }
+
+      .toggle-pw {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-body);
+        cursor: pointer;
+        font-size: 14px;
+        opacity: 0.6;
+      }
+      .toggle-pw:hover {
+        color: var(--accent-teal);
+        opacity: 1;
+      }
+
+      .login-btn {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(
+          135deg,
+          var(--accent-teal),
+          var(--accent-teal-hover)
+        );
+        color: var(--bg-main);
+        border: none;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.3s;
+        margin-top: 10px;
+        font-family: 'Inter', sans-serif;
+        box-shadow: 0 8px 20px rgba(42, 181, 192, 0.3);
+      }
+      .login-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(0, 229, 204, 0.4);
+      }
+      .login-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .message {
+        padding: 12px 15px;
+        border-radius: 10px;
+        font-size: 13px;
+        margin-top: 20px;
+        display: none;
+        text-align: center;
+      }
+      .message.error {
+        background: rgba(231, 76, 60, 0.15);
+        color: #ff6b6b;
+        border: 1px solid rgba(231, 76, 60, 0.3);
+        display: block;
+      }
+      .message.success {
+        background: rgba(42, 181, 192, 0.15);
+        color: var(--accent-teal-hover);
+        border: 1px solid rgba(42, 181, 192, 0.3);
+        display: block;
+      }
+
+      .back-link {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 13px;
+        color: var(--text-body);
+      }
+      .back-link a {
+        color: var(--accent-teal);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .back-link a:hover {
+        color: var(--accent-teal-hover);
+      }
+
+      .spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(10, 22, 40, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--bg-main);
+        animation: spin 0.8s linear infinite;
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+
+  <script src="theme.js"></script>
+
+  <body>
+    <div class="login-card">
+      <div class="logo">
+        <div class="shield">
+          <img
+            src="images/shield.png"
+            alt="shield"
+            style="width: 50px; height: 50px" />
+        </div>
+        <h1>Admin Portal</h1>
+        <p>AI Phishing Detection System</p>
+        <div class="admin-badge">ADMINISTRATOR ACCESS</div>
+      </div>
+
+      <div class="form-group">
+        <label>Username</label>
+        <div class="input-wrapper">
+          <i class="fas fa-user"></i>
+          <input
+            type="text"
+            id="username"
+            placeholder="Admin username"
+            autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-wrapper">
+          <i class="fas fa-lock"></i>
+          <input
+            type="password"
+            id="password"
+            placeholder="Admin password" />
+          <i
+            class="fas fa-eye toggle-pw"
+            onclick="togglePw(this)"
+            data-target="password"></i>
+        </div>
+      </div>
+
+      <button
+        class="login-btn"
+        onclick="adminLogin()"
+        id="loginBtn">
+        <span id="btnText"
+          ><i class="fas fa-sign-in-alt"></i> Login to Dashboard</span
+        >
+      </button>
+
+      <div
+        id="message"
+        class="message"></div>
+      <div class="back-link"><a href="index.html">Back to Main Site</a></div>
+    </div>
+
+    <script>
+      const API_BASE_URL = 'http://localhost:8000';
+
+      function togglePw(icon) {
+        const input = document.getElementById(icon.dataset.target);
+        if (input.type === 'password') {
+          input.type = 'text';
+          icon.className = 'fas fa-eye-slash toggle-pw';
+        } else {
+          input.type = 'password';
+          icon.className = 'fas fa-eye toggle-pw';
+        }
+        icon.dataset.target = icon.dataset.target;
+      }
+      function showMsg(text, type) {
+        const msg = document.getElementById('message');
+        msg.textContent = text;
+        msg.className = 'message ' + type;
+      }
+      async function adminLogin() {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const btn = document.getElementById('loginBtn');
+        const btnText = document.getElementById('btnText');
+        if (!username || !password) {
+          showMsg('Please enter username and password', 'error');
+          return;
+        }
+        btn.disabled = true;
+        btnText.innerHTML = '<span class="spinner"></span>Logging in...';
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+          });
+          const data = await response.json();
+          if (response.ok && data.success) {
+            showMsg('Login successful! Redirecting...', 'success');
+            localStorage.setItem(
+              'admin',
+              JSON.stringify({
+                username: data.username,
+                role: 'admin',
+                access_token: data.access_token,
+                loginTime: new Date().toISOString(),
+              }),
+            );
+            setTimeout(() => {
+              window.location.href = 'admin_dashboard.html';
+            }, 1200);
+          } else {
+            showMsg(`${data.detail || 'Invalid credentials'}`, 'error');
+            btn.disabled = false;
+            btnText.innerHTML =
+              '<i class="fas fa-sign-in-alt"></i> Login to Dashboard';
+          }
+        } catch (error) {
+          showMsg(
+            `Cannot connect to backend. Make sure server is running on ${API_BASE_URL}`,
+            'error',
+          );
+          btn.disabled = false;
+          btnText.innerHTML =
+            '<i class="fas fa-sign-in-alt"></i> Login to Dashboard';
+        }
+      }
+      document.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') adminLogin();
+      });
+      window.onload = () => {
+        const admin = JSON.parse(localStorage.getItem('admin') || 'null');
+        if (admin && admin.role === 'admin') {
+          window.location.href = 'admin_dashboard.html';
+        }
+        document.getElementById('username').focus();
+      };
+    </script>
+  </body>
+</html>

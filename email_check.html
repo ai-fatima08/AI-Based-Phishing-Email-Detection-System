@@ -1,0 +1,910 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>Email Analyzer AI Phishing Detector</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', sans-serif;
+      }
+
+      body {
+        min-height: 100vh;
+        background: #0a1628;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 800px;
+        background: #0f2040;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+        border: 1px solid #1a3d6b;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #0f2040 0%, #1a3d6b 100%);
+        padding: 30px;
+        text-align: center;
+        color: #b0cce0;
+        position: relative;
+        border-bottom: 1px solid #1a3d6b;
+      }
+
+      .header h1 {
+        font-size: 28px;
+        margin-bottom: 10px;
+        color: #00d4bb;
+      }
+
+      .header p {
+        opacity: 0.9;
+        color: #b0cce0;
+      }
+
+      .dashboard-btn {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(42, 181, 192, 0.15);
+        color: #2ab5c0;
+        border: 1px solid #2ab5c0;
+        padding: 8px 16px;
+        border-radius: 30px;
+        font-size: 14px;
+        cursor: pointer;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: 0.3s;
+      }
+
+      .dashboard-btn:hover {
+        background: rgba(0, 229, 204, 0.25);
+        color: #00e5cc;
+        border-color: #00e5cc;
+      }
+
+      .user-bar {
+        background: #0a1628;
+        padding: 10px 20px;
+        font-size: 13px;
+        color: #b0cce0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #1a3d6b;
+      }
+
+      .user-bar strong {
+        font-weight: 700;
+        color: #2ab5c0;
+      }
+
+      .banner {
+        padding: 10px 20px;
+        font-size: 13px;
+        display: none;
+      }
+
+      .banner.show {
+        display: block;
+      }
+
+      .banner.success {
+        background: rgba(42, 181, 192, 0.15);
+        color: #2ab5c0;
+        border-left: 4px solid #2ab5c0;
+      }
+
+      .banner.error {
+        background: rgba(220, 53, 69, 0.15);
+        color: #fc8181;
+        border-left: 4px solid #e53e3e;
+      }
+
+      .content {
+        padding: 30px;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 10px;
+        background: #0a1628;
+        padding: 5px;
+        border-radius: 50px;
+        margin-bottom: 25px;
+        border: 1px solid #1a3d6b;
+      }
+
+      .tab {
+        flex: 1;
+        padding: 12px;
+        text-align: center;
+        border-radius: 50px;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        color: #b0cce0;
+        font-weight: 600;
+        transition: 0.3s;
+      }
+
+      .tab.active {
+        background: linear-gradient(135deg, #2ab5c0, #7b5ea7);
+        color: white;
+      }
+
+      .input-section {
+        display: none;
+      }
+
+      .input-section.active {
+        display: block;
+      }
+
+      .textarea-container {
+        position: relative;
+        margin-bottom: 20px;
+      }
+
+      textarea {
+        width: 100%;
+        height: 200px;
+        padding: 15px;
+        border: 2px solid #1a3d6b;
+        border-radius: 15px;
+        font-size: 15px;
+        resize: none;
+        transition: 0.3s;
+        background: #0a1628;
+        color: #b0cce0;
+      }
+
+      textarea::placeholder {
+        color: #4a6080;
+      }
+
+      textarea:focus {
+        outline: none;
+        border-color: #2ab5c0;
+        background: #0a1628;
+      }
+
+      .char-counter {
+        position: absolute;
+        bottom: 10px;
+        right: 15px;
+        font-size: 12px;
+        color: #4a6080;
+        background: rgba(10, 22, 40, 0.9);
+        padding: 2px 8px;
+        border-radius: 20px;
+      }
+
+      .analyze-btn {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, #2ab5c0, #7b5ea7);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.3s;
+        margin: 20px 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .analyze-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0, 229, 204, 0.3);
+        background: linear-gradient(135deg, #00e5cc, #7b5ea7);
+      }
+
+      .analyze-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .spinner {
+        width: 24px;
+        height: 24px;
+        border: 3px solid #ffffff;
+        border-top: 3px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .error-msg {
+        background: rgba(229, 62, 62, 0.15);
+        border-left: 4px solid #e53e3e;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+        color: #fc8181;
+        display: none;
+      }
+
+      .error-msg.show {
+        display: block;
+      }
+
+      .save-notice {
+        background: rgba(42, 181, 192, 0.15);
+        border-left: 4px solid #2ab5c0;
+        padding: 10px 15px;
+        margin-top: 10px;
+        font-size: 13px;
+        color: #2ab5c0;
+        display: none;
+        border-radius: 4px;
+      }
+
+      .save-notice.show {
+        display: block;
+      }
+
+      .result-card {
+        background: #0a1628;
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 20px;
+        display: none;
+        border: 1px solid #1a3d6b;
+      }
+
+      .result-card.show {
+        display: block;
+      }
+
+      .result-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .result-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+      }
+
+      .result-icon.safe {
+        background: rgba(42, 181, 192, 0.2);
+        border: 2px solid #2ab5c0;
+      }
+
+      .result-icon.phishing {
+        background: rgba(229, 62, 62, 0.2);
+        border: 2px solid #e53e3e;
+      }
+
+      .result-title {
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .result-title.safe {
+        color: #00d4bb;
+      }
+
+      .result-title.phishing {
+        color: #fc8181;
+      }
+
+      .result-meta {
+        font-size: 13px;
+        color: #4a6080;
+        margin-top: 4px;
+      }
+
+      .confidence-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        color: #b0cce0;
+        margin-bottom: 6px;
+      }
+
+      .confidence-bar {
+        background: #1a3d6b;
+        height: 14px;
+        border-radius: 7px;
+        overflow: hidden;
+      }
+
+      .confidence-fill {
+        height: 100%;
+        border-radius: 7px;
+        transition: width 1.2s ease-out;
+      }
+
+      .confidence-fill.safe {
+        background: linear-gradient(90deg, #2ab5c0, #00e5cc);
+      }
+
+      .confidence-fill.phishing {
+        background: linear-gradient(90deg, #e53e3e, #fc8181);
+      }
+
+      .stats-row {
+        display: flex;
+        gap: 15px;
+        margin: 20px 0;
+      }
+
+      .stat-box {
+        flex: 1;
+        background: #0f2040;
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        border: 2px solid #1a3d6b;
+      }
+
+      .stat-box .val {
+        font-size: 22px;
+        font-weight: 700;
+      }
+
+      .stat-box .lbl {
+        font-size: 11px;
+        color: #4a6080;
+        margin-top: 4px;
+      }
+
+      .risk-factors {
+        background: #0f2040;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 15px 0;
+        border: 1px solid #1a3d6b;
+      }
+
+      .risk-factors h4 {
+        color: #00d4bb;
+        margin-bottom: 10px;
+      }
+
+      .factor-item {
+        padding: 10px;
+        background: #0a1628;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        color: #b0cce0;
+        border: 1px solid #1a3d6b;
+      }
+
+      .recommendation-box {
+        border-left: 4px solid #2ab5c0;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+      }
+
+      .recommendation-box.safe {
+        background: rgba(42, 181, 192, 0.1);
+        border-color: #2ab5c0;
+        color: #b0cce0;
+      }
+
+      .recommendation-box.phishing {
+        background: rgba(229, 62, 62, 0.1);
+        border-color: #e53e3e;
+        color: #fc8181;
+      }
+
+      .recommendation-box p {
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .btn {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .btn-primary {
+        background: #2ab5c0;
+        color: #0a1628;
+      }
+
+      .btn-secondary {
+        background: #7b5ea7;
+        color: white;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.15);
+      }
+
+      .upload-area {
+        border: 2px dashed #1a3d6b;
+        border-radius: 15px;
+        padding: 40px;
+        text-align: center;
+        background: #0a1628;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+
+      .upload-area:hover {
+        border-color: #2ab5c0;
+        background: rgba(42, 181, 192, 0.05);
+      }
+
+      .upload-area p {
+        font-size: 16px;
+        color: #b0cce0;
+        font-weight: 600;
+      }
+
+      .upload-icon {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <script src="theme.js"></script>
+
+  <body>
+    <div class="container">
+      <div class="header">
+        <a
+          class="dashboard-btn"
+          href="user_dashboard.html">
+          Dashboard</a
+        >
+        <h1>AI Phishing Detection</h1>
+        <p>Paste or upload a .txt file to analyze</p>
+      </div>
+
+      <div
+        id="userBar"
+        class="user-bar"
+        style="display: none">
+        <span>Logged in as: <strong id="loggedUserName"></strong></span>
+        <span>Total scans: <strong id="loggedUserScans">0</strong></span>
+      </div>
+
+      <div
+        id="banner"
+        class="banner"></div>
+
+      <div class="content">
+        <div class="tabs">
+          <button
+            class="tab active"
+            onclick="switchTab('text')">
+            Paste Text
+          </button>
+          <button
+            class="tab"
+            onclick="switchTab('file')">
+            Upload .txt File
+          </button>
+        </div>
+
+        <div
+          id="textInput"
+          class="input-section active">
+          <div class="textarea-container">
+            <textarea
+              id="emailContent"
+              placeholder="Paste suspicious email content here..."></textarea>
+            <span
+              class="char-counter"
+              id="charCount"
+              >0 / 10000</span
+            >
+          </div>
+        </div>
+
+        <div
+          id="fileInput"
+          class="input-section">
+          <div
+            class="upload-area"
+            onclick="document.getElementById('fileUpload').click()">
+            <img
+              src="images/folder.png"
+              alt="Upload"
+              class="upload-icon" />
+            <p> Click to upload .txt file</p>
+            <p style="font-size: 12px; color: #4a6080; margin-top: 5px">
+              Only .txt files are supported
+            </p>
+          </div>
+          <input
+            type="file"
+            id="fileUpload"
+            accept=".txt"
+            style="display: none"
+            onchange="handleFile(event)" />
+        </div>
+
+        <button
+          class="analyze-btn"
+          onclick="analyzeEmail()"
+          id="analyzeBtn">
+          <span id="btnText">Analyze Email</span>
+          <span
+            id="btnSpinner"
+            style="display: none"
+            class="spinner"></span>
+        </button>
+
+        <div
+          id="errorMsg"
+          class="error-msg"></div>
+        <div
+          id="saveNotice"
+          class="save-notice"></div>
+
+        <div
+          id="resultCard"
+          class="result-card">
+          <div class="result-header">
+            <div
+              id="resultIcon"
+              class="result-icon"
+              style="display: none"></div>
+            <div>
+              <div
+                id="resultTitle"
+                class="result-title safe">
+                SAFE EMAIL
+              </div>
+              <div
+                class="result-meta"
+                id="resultMeta"></div>
+            </div>
+          </div>
+          <div class="confidence-label">
+            <span>Confidence Score</span>
+            <span
+              id="confidenceText"
+              style="font-weight: 700"
+              >0%</span
+            >
+          </div>
+          <div class="confidence-bar">
+            <div
+              id="confidenceFill"
+              class="confidence-fill safe"
+              style="width: 0%"></div>
+          </div>
+          <div
+            class="stats-row"
+            id="statsRow"
+            style="display: none">
+            <div class="stat-box">
+              <div
+                class="val"
+                id="statTotal"
+                style="color: #2ab5c0">
+                0
+              </div>
+              <div class="lbl">Total Scans</div>
+            </div>
+            <div class="stat-box">
+              <div
+                class="val"
+                id="statPhishing"
+                style="color: #fc8181">
+                0
+              </div>
+              <div class="lbl">Phishing</div>
+            </div>
+            <div class="stat-box">
+              <div
+                class="val"
+                id="statSafe"
+                style="color: #00e5cc">
+                0
+              </div>
+              <div class="lbl">Safe</div>
+            </div>
+          </div>
+          <div class="risk-factors">
+            <h4>Risk Factors Detected:</h4>
+            <div id="riskFactorsList"></div>
+          </div>
+          <div
+            id="recommendationBox"
+            class="recommendation-box safe">
+            <p id="recommendationText"></p>
+          </div>
+          <div class="action-buttons">
+            <button
+              class="btn btn-primary"
+              onclick="window.location.href = 'user_dashboard.html'">
+              Dashboard
+            </button>
+            <button
+              class="btn btn-secondary"
+              onclick="resetForm()">
+              New Analysis
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+      const API_BASE = 'http://localhost:8000';
+
+      window.onload = async function () {
+        resetForm();
+        const user = API.getCurrentUser();
+        if (user) {
+          document.getElementById('userBar').style.display = 'flex';
+          document.getElementById('loggedUserName').textContent =
+            user.username || user.name || 'User';
+          await updateUserBar(user);
+        }
+        const banner = document.getElementById('banner');
+        try {
+          const data = await API.health();
+          banner.className = 'banner success show';
+          banner.innerHTML = `Backend connected... DB: ${data.database}  Model: ${data.ml_model}`;
+          setTimeout(() => banner.classList.remove('show'), 4000);
+        } catch (e) {
+          banner.className = 'banner error show';
+          banner.innerHTML = 'Backend offline... run: python main.py';
+        }
+        document
+          .getElementById('emailContent')
+          .addEventListener('input', function () {
+            const len = this.value.length;
+            document.getElementById('charCount').textContent = `${len} / 10000`;
+            if (len > 10000) this.value = this.value.substring(0, 10000);
+          });
+      };
+
+      async function updateUserBar(user) {
+        if (!user || !user.access_token) return;
+        try {
+          const res = await fetch(
+            `${API_BASE}/api/user/${user.user_id}/stats`,
+            {
+              headers: { Authorization: `Bearer ${user.access_token}` },
+            },
+          );
+          if (res.ok) {
+            const data = await res.json();
+            const total = data.stats?.total_scans || 0;
+            document.getElementById('loggedUserScans').textContent = total;
+            user.total_scans = total;
+            localStorage.setItem('user', JSON.stringify(user));
+          }
+        } catch (e) {
+          document.getElementById('loggedUserScans').textContent =
+            user.total_scans || 0;
+        }
+      }
+
+      function switchTab(tab) {
+        document
+          .querySelectorAll('.tab')
+          .forEach((t, i) =>
+            t.classList.toggle('active', (tab === 'text' ? 0 : 1) === i),
+          );
+        document
+          .getElementById('textInput')
+          .classList.toggle('active', tab === 'text');
+        document
+          .getElementById('fileInput')
+          .classList.toggle('active', tab === 'file');
+      }
+
+      function handleFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Check if file is .txt
+        if (!file.name.endsWith('.txt')) {
+          showError(
+            'Only .txt files are supported. Please upload a .txt file.',
+          );
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          document.getElementById('emailContent').value =
+            e.target.result.substring(0, 10000);
+          document.getElementById('charCount').textContent =
+            `${document.getElementById('emailContent').value.length} / 10000`;
+          switchTab('text');
+        };
+        reader.readAsText(file);
+      }
+
+      async function analyzeEmail() {
+        const emailText = document.getElementById('emailContent').value.trim();
+        if (!emailText || emailText.length < 10) {
+          showError('Please enter at least 10 characters.');
+          return;
+        }
+        const btn = document.getElementById('analyzeBtn');
+        btn.disabled = true;
+        document.getElementById('btnText').textContent = 'Analyzing...';
+        document.getElementById('btnSpinner').style.display = 'inline-block';
+        document.getElementById('errorMsg').classList.remove('show');
+        document.getElementById('saveNotice').classList.remove('show');
+        document.getElementById('resultCard').classList.remove('show');
+
+        try {
+          const user = API.getCurrentUser();
+          const userId = user ? user.user_id : null;
+          const data = await API.analyzeEmail(emailText, userId);
+
+          if (data.success) {
+            displayResult(data);
+            if (userId && data.scan_id) {
+              await updateUserBar(user);
+              const freshUser = API.getCurrentUser();
+              document.getElementById('statTotal').textContent =
+                freshUser.total_scans || 0;
+              const statsRes = await fetch(
+                `${API_BASE}/api/user/${userId}/stats`,
+                {
+                  headers: { Authorization: `Bearer ${user.access_token}` },
+                },
+              );
+              if (statsRes.ok) {
+                const statsData = await statsRes.json();
+                const s = statsData.stats || {};
+                document.getElementById('statTotal').textContent =
+                  s.total_scans || 0;
+                document.getElementById('statPhishing').textContent =
+                  s.phishing_count || 0;
+                document.getElementById('statSafe').textContent =
+                  s.safe_count || 0;
+                document.getElementById('statsRow').style.display = 'flex';
+              }
+              const notice = document.getElementById('saveNotice');
+              notice.innerHTML = `Scan saved! (ID: ${data.scan_id}) — Stats updated above`;
+              notice.classList.add('show');
+            }
+          } else {
+            showError(data.detail || 'Analysis failed.');
+          }
+        } catch (e) {
+          showError('Cannot connect to backend. Run: python main.py');
+        } finally {
+          btn.disabled = false;
+          document.getElementById('btnText').textContent = 'Analyze Email';
+          document.getElementById('btnSpinner').style.display = 'none';
+        }
+      }
+
+      function displayResult(data) {
+        const isPhishing = data.result === 'phishing';
+        const confidence =
+          parseFloat(String(data.confidence).replace('%', '').trim()) || 0;
+
+        const iconDiv = document.getElementById('resultIcon');
+        iconDiv.style.display = 'flex';
+        iconDiv.className = `result-icon ${isPhishing ? 'phishing' : 'safe'}`;
+        iconDiv.innerHTML = isPhishing ? 'NO' : 'Yes';
+
+        document.getElementById('resultTitle').className =
+          `result-title ${isPhishing ? 'phishing' : 'safe'}`;
+        document.getElementById('resultTitle').textContent = isPhishing
+          ? 'PHISHING DETECTED!'
+          : 'SAFE EMAIL';
+        document.getElementById('resultMeta').textContent =
+          `Risk Level: ${(data.risk_level || 'low').toUpperCase()} | Processing: ${data.processing_time_ms || 0}ms`;
+        document.getElementById('confidenceText').textContent =
+          `${confidence.toFixed(1)}%`;
+
+        const fill = document.getElementById('confidenceFill');
+        fill.className = `confidence-fill ${isPhishing ? 'phishing' : 'safe'}`;
+        fill.style.width = '0%';
+        setTimeout(() => {
+          fill.style.width = `${confidence}%`;
+        }, 50);
+
+        const riskList = document.getElementById('riskFactorsList');
+        riskList.innerHTML = '';
+        const factors = data.risk_factors || [];
+        if (factors.length > 0) {
+          factors.forEach((f) => {
+            const div = document.createElement('div');
+            div.className = 'factor-item';
+            div.innerHTML = `<span></span> <span>${f}</span>`;
+            riskList.appendChild(div);
+          });
+        } else {
+          riskList.innerHTML =
+            '<div class="factor-item"> <span>No significant risk factors detected</span></div>';
+        }
+
+        const recBox = document.getElementById('recommendationBox');
+        recBox.className = `recommendation-box ${isPhishing ? 'phishing' : 'safe'}`;
+        document.getElementById('recommendationText').textContent = isPhishing
+          ? 'WARNING: This email shows phishing indicators. Do NOT click links or reply. Delete immediately.'
+          : 'This email appears safe. Stay vigilant — when in doubt, verify the sender.';
+
+        document.getElementById('resultCard').classList.add('show');
+        document
+          .getElementById('resultCard')
+          .scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      function showError(msg) {
+        const el = document.getElementById('errorMsg');
+        el.textContent = msg;
+        el.classList.add('show');
+      }
+
+      function resetForm() {
+        document.getElementById('emailContent').value = '';
+        document.getElementById('charCount').textContent = '0 / 10000';
+        document.getElementById('resultCard').classList.remove('show');
+        document.getElementById('errorMsg').classList.remove('show');
+        document.getElementById('saveNotice').classList.remove('show');
+        document.getElementById('statsRow').style.display = 'none';
+        document.getElementById('resultIcon').style.display = 'none';
+        switchTab('text');
+      }
+    </script>
+  </body>
+</html>

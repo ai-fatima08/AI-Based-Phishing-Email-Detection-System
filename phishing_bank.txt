@@ -1,0 +1,13 @@
+Subject: Chase Bank: Your account has been locked
+
+Dear Chase Customer,
+
+We detected multiple failed login attempts to your online banking.
+
+For your security, we have temporarily locked your account.
+
+Please unlock your account by confirming your details:
+https://chase-secure-verification.com/unlock
+
+Sincerely,
+Chase Fraud Protection

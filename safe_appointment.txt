@@ -1,0 +1,20 @@
+From: scheduling@clinic.com
+To: user@example.com
+Subject: Appointment Reminder: Dr. Williams - May 15
+Date: Wed, 8 May 2024 14:00:00 -0500
+Content-Type: text/plain; charset="UTF-8"
+
+Dear Patient,
+
+This is a reminder of your upcoming appointment:
+
+Date: May 15, 2024
+Time: 10:30 AM
+Location: 123 Health St, Suite 200
+
+Please arrive 10 minutes early.
+
+To reschedule: (555) 123-4567
+
+Thank you,
+Dr. Williams Office

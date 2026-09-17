@@ -1,0 +1,940 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>My Reports AI Phishing Detector</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+      }
+
+      body {
+        background: #0a1628;
+        display: flex;
+        min-height: 100vh;
+        width: 100%;
+      }
+
+      .sidebar {
+        width: 280px;
+        background: linear-gradient(180deg, #0f2040 0%, #0a1628 100%);
+        color: #b0cce0;
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        min-height: 100vh;
+        position: relative;
+        border-right: 1px solid #1a3d6b;
+      }
+
+      .sidebar.collapsed {
+        width: 80px;
+      }
+
+      .sidebar.collapsed .sidebar-menu span,
+      .sidebar.collapsed .profile-info {
+        display: none;
+      }
+
+      .toggle-btn {
+        position: absolute;
+        right: -12px;
+        top: 30px;
+        width: 24px;
+        height: 24px;
+        background: #2ab5c0;
+        border: 2px solid #0a1628;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #0a1628;
+        font-size: 12px;
+        z-index: 200;
+      }
+
+      .sidebar-wrap {
+        position: relative;
+      }
+
+      .profile-section {
+        padding: 25px 20px;
+        text-align: center;
+        border-bottom: 1px solid #1a3d6b;
+        flex-shrink: 0;
+      }
+
+      .profile-img {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        border: 3px solid #2ab5c0;
+        margin-bottom: 10px;
+        object-fit: cover;
+      }
+
+      .profile-info h3 {
+        font-size: 16px;
+        margin-bottom: 3px;
+        color: #00d4bb;
+      }
+      .profile-info p {
+        font-size: 12px;
+        color: #4a6080;
+      }
+
+      .sidebar-menu {
+        padding: 12px 0;
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 13px 20px;
+        color: #b0cce0;
+        cursor: pointer;
+        transition: 0.3s;
+        margin: 3px 8px;
+        border-radius: 10px;
+      }
+
+      .menu-item i {
+        width: 28px;
+        font-size: 16px;
+        color: #4a6080;
+      }
+      .menu-item span {
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .menu-item:hover {
+        background: rgba(42, 181, 192, 0.1);
+        color: #00e5cc;
+      }
+      .menu-item:hover i {
+        color: #00e5cc;
+      }
+
+      .menu-item.active {
+        background: rgba(42, 181, 192, 0.15);
+        color: #00d4bb;
+        border-left: 4px solid #2ab5c0;
+      }
+
+      .menu-item.active i {
+        color: #2ab5c0;
+      }
+
+      .logout-btn {
+        margin: 10px 12px 15px;
+        background: rgba(229, 62, 62, 0.1);
+        color: #fc8181;
+        border: 1px solid rgba(229, 62, 62, 0.3);
+        padding: 11px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-shrink: 0;
+        transition: 0.2s;
+      }
+
+      .logout-btn:hover {
+        background: #e53e3e;
+        border-color: #e53e3e;
+        color: white;
+      }
+
+      .main-content {
+        flex: 1;
+        padding: 30px;
+        background: #0a1628;
+        overflow-y: auto;
+        min-width: 0;
+      }
+
+      .header-title h1 {
+        font-size: 26px;
+        color: #00d4bb;
+        font-weight: 700;
+        margin-bottom: 5px;
+      }
+      .header-title p {
+        color: #4a6080;
+        font-size: 14px;
+      }
+
+      .report-controls {
+        background: #0f2040;
+        border-radius: 12px;
+        padding: 18px;
+        margin: 20px 0;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        border: 1px solid #1a3d6b;
+      }
+
+      .filter-select,
+      .date-input {
+        padding: 9px 14px;
+        border: 2px solid #1a3d6b;
+        border-radius: 8px;
+        font-size: 13px;
+        font-family: 'Inter', sans-serif;
+        background: #0a1628;
+        color: #b0cce0;
+      }
+
+      .filter-select:focus,
+      .date-input:focus {
+        outline: none;
+        border-color: #2ab5c0;
+      }
+
+      .filter-select option {
+        background: #0f2040;
+        color: #b0cce0;
+      }
+
+      .report-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-family: 'Inter', sans-serif;
+      }
+
+      .report-btn.primary {
+        background: linear-gradient(135deg, #2ab5c0, #7b5ea7);
+        color: white;
+      }
+      .report-btn.secondary {
+        background: rgba(42, 181, 192, 0.1);
+        color: #2ab5c0;
+        border: 1px solid #2ab5c0;
+      }
+      .report-btn:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.1);
+      }
+
+      .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 15px;
+        margin-bottom: 22px;
+      }
+
+      .summary-card {
+        background: #0f2040;
+        border-radius: 12px;
+        padding: 18px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        border: 1px solid #1a3d6b;
+      }
+
+      .summary-card h3 {
+        font-size: 12px;
+        color: #4a6080;
+        margin-bottom: 6px;
+      }
+      .summary-number {
+        font-size: 28px;
+        font-weight: 700;
+        color: #2ab5c0;
+      }
+      .summary-label {
+        font-size: 11px;
+        color: #00e5cc;
+        margin-top: 3px;
+      }
+
+      .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 20px;
+        margin-bottom: 22px;
+      }
+
+      .chart-card {
+        background: #0f2040;
+        border-radius: 12px;
+        padding: 18px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        border: 1px solid #1a3d6b;
+      }
+
+      .chart-card h3 {
+        font-size: 15px;
+        color: #00d4bb;
+        font-weight: 600;
+        margin-bottom: 14px;
+      }
+
+      .chart-container {
+        height: 260px;
+        position: relative;
+      }
+
+      .download-options {
+        background: #0f2040;
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 22px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        border: 1px solid #1a3d6b;
+      }
+
+      .download-options h3 {
+        font-size: 16px;
+        color: #00d4bb;
+        margin-bottom: 12px;
+      }
+
+      .download-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .download-btn {
+        padding: 10px 20px;
+        border: 1px solid #1a3d6b;
+        border-radius: 8px;
+        background: #0a1628;
+        cursor: pointer;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: #b0cce0;
+        font-family: 'Inter', sans-serif;
+      }
+
+      .download-btn:hover {
+        background: rgba(42, 181, 192, 0.1);
+        border-color: #2ab5c0;
+        color: #2ab5c0;
+      }
+
+      .stats-table {
+        background: #0f2040;
+        border-radius: 12px;
+        padding: 18px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        border: 1px solid #1a3d6b;
+      }
+
+      .stats-table h3 {
+        font-size: 16px;
+        color: #00d4bb;
+        margin-bottom: 12px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      table th {
+        text-align: left;
+        padding: 11px;
+        color: #4a6080;
+        font-weight: 600;
+        border-bottom: 2px solid #1a3d6b;
+        font-size: 13px;
+      }
+
+      table td {
+        padding: 11px;
+        border-bottom: 1px solid #1a3d6b;
+        font-size: 13px;
+        color: #b0cce0;
+      }
+
+      table tr:last-child td {
+        border-bottom: none;
+      }
+      table tr:hover td {
+        background: rgba(42, 181, 192, 0.04);
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 50px;
+        color: #4a6080;
+      }
+
+      .empty-state i {
+        font-size: 48px;
+        margin-bottom: 15px;
+        opacity: 0.3;
+        display: block;
+        color: #2ab5c0;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: #4a6080;
+      }
+
+      .spinner {
+        border: 3px solid #1a3d6b;
+        border-top: 3px solid #2ab5c0;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <script src="theme.js"></script>
+
+  <body>
+    <div
+      class="sidebar"
+      id="sidebar">
+      <div
+        class="toggle-btn"
+        onclick="toggleSidebar()">
+        <img
+          src="images/arrow (5).png"
+          alt="menu"
+          style="width: 18px; height: 18px" />
+      </div>
+      <div class="profile-section">
+        <img
+          src="images/u-profile (2).jpg"
+          class="profile-img"
+          id="sidebarAvatar" />
+        <div class="profile-info">
+          <h3 id="sidebarName">Loading...</h3>
+          <p id="sidebarEmail"></p>
+        </div>
+      </div>
+      <div class="sidebar-menu">
+        <div
+          class="menu-item"
+          onclick="nav('user_dashboard.html')">
+          <i class="fas fa-home"></i>
+          <span>Dashboard</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('email_check.html')">
+          <i class="fas fa-shield-alt"></i>
+          <span>Check Email</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('history.html')">
+          <i class="fas fa-history"></i>
+          <span>My History</span>
+        </div>
+        <div class="menu-item active">
+          <i class="fas fa-chart-bar"></i>
+          <span>My Reports</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('user_feedback.html')">
+          <i class="fas fa-comment-alt"></i>
+          <span>Feedback</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('pattern.html')">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>Patterns</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('user_profile.html')">
+          <i class="fas fa-user"></i>
+          <span>Profile</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('user_settings.html')">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </div>
+      </div>
+      <button
+        class="logout-btn"
+        onclick="handleLogout()">
+        <img
+          src="images/rename (2).png"
+          alt="logout"
+          style="width: 25px; height: 25px" />
+        <span>Logout</span>
+      </button>
+    </div>
+
+    <div class="main-content">
+      <div class="header-title">
+        <h1>My Reports & Analytics</h1>
+        <p>Detailed insights about your email analysis</p>
+      </div>
+
+      <div class="report-controls">
+        <select
+          class="filter-select"
+          id="reportPeriod"
+          onchange="applyFilter()">
+          <option value="7">Last 7 days</option>
+          <option
+            value="30"
+            selected>
+            Last 30 days
+          </option>
+          <option value="90">Last 90 days</option>
+          <option value="365">Last year</option>
+          <option value="all">All time</option>
+        </select>
+        <input
+          type="date"
+          id="customStart"
+          class="date-input" />
+        <input
+          type="date"
+          id="customEnd"
+          class="date-input" />
+        <button
+          class="report-btn secondary"
+          onclick="applyCustomRange()">
+          <img
+            src="images/calender (2).png"
+            alt="calendar"
+            style="width: 18px; height: 18px" />
+          Apply Range
+        </button>
+        <button
+          class="report-btn primary"
+          onclick="loadUserScans()">
+          <i class="fas fa-sync-alt"></i>
+          Refresh
+        </button>
+      </div>
+
+      <div
+        id="loadingState"
+        class="loading">
+        <div class="spinner"></div>
+        <p style="margin-top: 10px">Loading your scan data...</p>
+      </div>
+
+      <div
+        id="reportContent"
+        style="display: none">
+        <div
+          class="summary-cards"
+          id="summaryCards"></div>
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3>Safe vs Phishing</h3>
+            <div class="chart-container">
+              <canvas id="resultChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>Risk Level Analysis</h3>
+            <div class="chart-container"><canvas id="riskChart"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <h3>Scans Over Time</h3>
+            <div class="chart-container">
+              <canvas id="timelineChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>Confidence Distribution</h3>
+            <div class="chart-container">
+              <canvas id="confidenceChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="download-options">
+          <h3>Download Reports</h3>
+          <div class="download-buttons">
+            <button
+              class="download-btn"
+              onclick="downloadCSV()">
+              <img
+                src="images/download.png"
+                alt="download"
+                style="width: 18px; height: 18px" />
+              CSV Data
+            </button>
+            <button
+              class="download-btn"
+              onclick="window.print()">
+              <i class="fas fa-print"></i> Print
+            </button>
+          </div>
+        </div>
+        <div class="stats-table">
+          <h3>Detailed Statistics</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Value</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody id="statsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div
+        id="emptyState"
+        class="empty-state"
+        style="display: none">
+        <i class="fas fa-chart-bar"></i>
+        <h3 style="color: #b0cce0">No scans yet</h3>
+        <p style="margin: 10px 0">
+          Analyze some emails to see your reports here
+        </p>
+        <button
+          onclick="nav('email_check.html')"
+          style="
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #2ab5c0, #7b5ea7);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+          ">
+          Analyze First Email
+        </button>
+      </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+      const API_BASE = 'http://localhost:8000';
+      let currentUser = JSON.parse(localStorage.getItem('user')) || null;
+      let allScans = [],
+        filtered = [],
+        charts = {};
+
+      function nav(url) {
+        window.location.href = url;
+      }
+      function handleLogout() {
+        localStorage.removeItem('user');
+        window.location.href = 'user_login.html';
+      }
+      function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('collapsed');
+      }
+
+      // Chart.js dark theme defaults
+      Chart.defaults.color = '#b0cce0';
+      Chart.defaults.borderColor = '#1a3d6b';
+
+      async function loadUserScans() {
+        if (!currentUser) {
+          window.location.href = 'user_login.html';
+          return;
+        }
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('reportContent').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'none';
+        try {
+          const res = await fetch(
+            `${API_BASE}/api/user/${currentUser.user_id}/scans?limit=1000`,
+            {
+              headers: { Authorization: `Bearer ${currentUser.access_token}` },
+            },
+          );
+          const data = await res.json();
+          allScans = (data.scans || []).map((s) => ({
+            scan_id: s.scan_id,
+            result: s.prediction_result,
+            date: s.scan_timestamp
+              ? s.scan_timestamp.toString().split('T')[0]
+              : new Date().toISOString().split('T')[0],
+            confidence: parseFloat(s.confidence_score || 0),
+            risk: s.risk_level || 'low',
+            preview: (s.original_text || '').substring(0, 60),
+          }));
+          document.getElementById('loadingState').style.display = 'none';
+          if (allScans.length === 0) {
+            document.getElementById('emptyState').style.display = 'block';
+            return;
+          }
+          applyFilter();
+        } catch (e) {
+          document.getElementById('loadingState').innerHTML =
+            '<p style="color:#fc8181"> Cannot connect to backend.</p>';
+        }
+      }
+
+      function applyFilter() {
+        const period = document.getElementById('reportPeriod').value;
+        if (period === 'all') {
+          filtered = [...allScans];
+        } else {
+          const cutoff = new Date();
+          cutoff.setDate(cutoff.getDate() - parseInt(period));
+          filtered = allScans.filter((s) => new Date(s.date) >= cutoff);
+        }
+        renderReports();
+      }
+
+      function applyCustomRange() {
+        const start = document.getElementById('customStart').value,
+          end = document.getElementById('customEnd').value;
+        if (!start || !end) return;
+        filtered = allScans.filter((s) => s.date >= start && s.date <= end);
+        renderReports();
+      }
+
+      function renderReports() {
+        document.getElementById('reportContent').style.display = 'block';
+        const total = filtered.length,
+          phishing = filtered.filter((s) => s.result === 'phishing').length;
+        const safe = total - phishing,
+          highRisk = filtered.filter((s) => s.risk === 'high').length;
+        const avgConf =
+          total > 0
+            ? filtered.reduce((sum, s) => sum + s.confidence, 0) / total
+            : 0;
+
+        document.getElementById('summaryCards').innerHTML = `
+                <div class="summary-card"><h3>Total Scans</h3><div class="summary-number">${total}</div><div class="summary-label">Selected period</div></div>
+                <div class="summary-card"><h3>Phishing</h3><div class="summary-number" style="color:#fc8181">${phishing}</div><div class="summary-label">${total > 0 ? ((phishing / total) * 100).toFixed(1) : 0}%</div></div>
+                <div class="summary-card"><h3>Safe</h3><div class="summary-number" style="color:#00e5cc">${safe}</div><div class="summary-label">${total > 0 ? ((safe / total) * 100).toFixed(1) : 0}%</div></div>
+                <div class="summary-card"><h3>Avg Confidence</h3><div class="summary-number">${avgConf.toFixed(1)}%</div><div class="summary-label">Model confidence</div></div>
+                <div class="summary-card"><h3>High Risk</h3><div class="summary-number" style="color:#b388ff">${highRisk}</div><div class="summary-label">${total > 0 ? ((highRisk / total) * 100).toFixed(1) : 0}%</div></div>`;
+
+        Object.values(charts).forEach((c) => {
+          try {
+            c.destroy();
+          } catch (e) {}
+        });
+        charts = {};
+
+        const high = filtered.filter((s) => s.risk === 'high').length;
+        const medium = filtered.filter((s) => s.risk === 'medium').length;
+        const low = filtered.filter((s) => s.risk === 'low').length;
+
+        const chartBg = '#0a1628';
+
+        charts.result = new Chart(document.getElementById('resultChart'), {
+          type: 'pie',
+          data: {
+            labels: ['Phishing', 'Safe'],
+            datasets: [
+              {
+                data: [phishing, safe],
+                backgroundColor: ['#fc8181', '#00e5cc'],
+                borderWidth: 0,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { color: '#b0cce0' } },
+            },
+          },
+        });
+
+        charts.risk = new Chart(document.getElementById('riskChart'), {
+          type: 'doughnut',
+          data: {
+            labels: ['High', 'Medium', 'Low'],
+            datasets: [
+              {
+                data: [high, medium, low],
+                backgroundColor: ['#fc8181', '#b388ff', '#00e5cc'],
+                borderWidth: 0,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { color: '#b0cce0' } },
+            },
+          },
+        });
+
+        const days = [];
+        for (let i = 29; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const ds = d.toISOString().split('T')[0];
+          const day = filtered.filter((s) => s.date === ds);
+          days.push({
+            label: ds.slice(5),
+            p: day.filter((s) => s.result === 'phishing').length,
+            s: day.filter((s) => s.result === 'safe').length,
+          });
+        }
+
+        charts.timeline = new Chart(document.getElementById('timelineChart'), {
+          type: 'line',
+          data: {
+            labels: days.map((d) => d.label),
+            datasets: [
+              {
+                label: 'Phishing',
+                data: days.map((d) => d.p),
+                borderColor: '#fc8181',
+                backgroundColor: 'rgba(252,129,129,0.1)',
+                tension: 0.4,
+                fill: true,
+              },
+              {
+                label: 'Safe',
+                data: days.map((d) => d.s),
+                borderColor: '#00e5cc',
+                backgroundColor: 'rgba(0,229,204,0.1)',
+                tension: 0.4,
+                fill: true,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: '#1a3d6b' },
+                ticks: { color: '#b0cce0' },
+              },
+              x: { grid: { color: '#1a3d6b' }, ticks: { color: '#b0cce0' } },
+            },
+            plugins: { legend: { labels: { color: '#b0cce0' } } },
+          },
+        });
+
+        const buckets = [
+          [50, 60],
+          [60, 70],
+          [70, 80],
+          [80, 90],
+          [90, 101],
+        ];
+        charts.conf = new Chart(document.getElementById('confidenceChart'), {
+          type: 'bar',
+          data: {
+            labels: ['50-60%', '60-70%', '70-80%', '80-90%', '90%+'],
+            datasets: [
+              {
+                label: 'Scans',
+                data: buckets.map(
+                  ([lo, hi]) =>
+                    filtered.filter(
+                      (s) => s.confidence >= lo && s.confidence < hi,
+                    ).length,
+                ),
+                backgroundColor: '#2ab5c0',
+                borderRadius: 6,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: '#1a3d6b' },
+                ticks: { color: '#b0cce0' },
+              },
+              x: { grid: { color: '#1a3d6b' }, ticks: { color: '#b0cce0' } },
+            },
+            plugins: { legend: { labels: { color: '#b0cce0' } } },
+          },
+        });
+
+        if (total === 0) {
+          document.getElementById('statsBody').innerHTML =
+            '<tr><td colspan="3" style="text-align:center;color:#4a6080">No data</td></tr>';
+          return;
+        }
+
+        document.getElementById('statsBody').innerHTML = `
+                <tr><td>Total Scans</td><td><strong style="color:#2ab5c0">${total}</strong></td><td>Selected period</td></tr>
+                <tr><td>Phishing Rate</td><td><strong style="color:#fc8181">${((phishing / total) * 100).toFixed(1)}%</strong></td><td>${phishing} phishing emails</td></tr>
+                <tr><td>Safe Rate</td><td><strong style="color:#00e5cc">${(((total - phishing) / total) * 100).toFixed(1)}%</strong></td><td>${total - phishing} safe emails</td></tr>
+                <tr><td>Avg Confidence</td><td><strong style="color:#2ab5c0">${avgConf.toFixed(1)}%</strong></td><td>AI model confidence</td></tr>
+                <tr><td>High Risk</td><td><strong style="color:#b388ff">${((high / total) * 100).toFixed(1)}%</strong></td><td>${high} high risk scans</td></tr>`;
+      }
+
+      function downloadCSV() {
+        if (!filtered.length) {
+          alert('No data to export');
+          return;
+        }
+        let csv = 'Scan ID,Date,Result,Confidence,Risk,Preview\n';
+        filtered.forEach((s) => {
+          csv += `"${s.scan_id}","${s.date}","${s.result}","${s.confidence}%","${s.risk}","${s.preview.replace(/"/g, '""')}"\n`;
+        });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+        a.download = `reports_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+      }
+
+      window.onload = function () {
+        if (!currentUser) {
+          window.location.href = 'user_login.html';
+          return;
+        }
+        document.getElementById('sidebarName').textContent =
+          currentUser.username || 'User';
+        document.getElementById('sidebarEmail').textContent =
+          currentUser.email || '';
+        loadUserScans();
+      };
+    </script>
+  </body>
+</html>

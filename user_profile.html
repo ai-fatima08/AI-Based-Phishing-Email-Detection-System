@@ -1,0 +1,993 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>My Profile AI Phishing Detector</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+      }
+
+      body {
+        background: #0a1628;
+        display: flex;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        width: 280px;
+        background: linear-gradient(180deg, #0f2040 0%, #0a1628 100%);
+        color: #b0cce0;
+        position: relative;
+        flex-shrink: 0;
+        border-right: 1px solid #1a3d6b;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      .sidebar.collapsed {
+        width: 80px;
+      }
+      .sidebar.collapsed .menu-label,
+      .sidebar.collapsed .profile-info {
+        display: none;
+      }
+
+      .toggle-btn {
+        position: absolute;
+        right: -12px;
+        top: 30px;
+        width: 24px;
+        height: 24px;
+        background: #2ab5c0;
+        border: 2px solid #0a1628;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #0a1628;
+        font-size: 12px;
+        z-index: 100;
+      }
+
+      .profile-section {
+        padding: 25px 20px;
+        text-align: center;
+        border-bottom: 1px solid #1a3d6b;
+      }
+
+      .profile-img {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        border: 3px solid #2ab5c0;
+        margin-bottom: 10px;
+        object-fit: cover;
+      }
+
+      .profile-info h3 {
+        font-size: 16px;
+        color: #00d4bb;
+      }
+      .profile-info p {
+        font-size: 12px;
+        color: #4a6080;
+      }
+
+      .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 14px 25px;
+        color: #b0cce0;
+        cursor: pointer;
+        transition: 0.3s;
+        margin: 4px 10px;
+        border-radius: 10px;
+      }
+
+      .menu-item i {
+        width: 28px;
+        font-size: 16px;
+        color: #4a6080;
+      }
+      .menu-item:hover {
+        background: rgba(42, 181, 192, 0.1);
+        color: #00e5cc;
+      }
+      .menu-item:hover i {
+        color: #00e5cc;
+      }
+      .menu-item.active {
+        background: rgba(42, 181, 192, 0.15);
+        color: #00d4bb;
+        border-left: 4px solid #2ab5c0;
+      }
+      .menu-item.active i {
+        color: #2ab5c0;
+      }
+
+      .logout-btn {
+        margin: 10px 12px 15px;
+        background: rgba(229, 62, 62, 0.1);
+        color: #fc8181;
+        border: 1px solid rgba(229, 62, 62, 0.3);
+        padding: 11px;
+        border-radius: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: 0.2s;
+        margin-top: auto;
+      }
+
+      .logout-btn:hover {
+        background: #e53e3e;
+        border-color: #e53e3e;
+        color: white;
+      }
+
+      .main {
+        flex: 1;
+        padding: 25px;
+        overflow-y: auto;
+        background: #0a1628;
+      }
+
+      .page-header {
+        margin-bottom: 25px;
+      }
+      .page-header h1 {
+        font-size: 26px;
+        color: #00d4bb;
+        font-weight: 700;
+      }
+      .page-header p {
+        color: #4a6080;
+        font-size: 14px;
+        margin-top: 4px;
+      }
+
+      .profile-top {
+        background: #0f2040;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+        margin-bottom: 20px;
+        display: flex;
+        gap: 30px;
+        align-items: center;
+        flex-wrap: wrap;
+        border: 1px solid #1a3d6b;
+      }
+
+      .avatar-section {
+        text-align: center;
+        flex-shrink: 0;
+      }
+
+      .avatar-wrap {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 8px;
+      }
+
+      .avatar-wrap img {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 4px solid #2ab5c0;
+        object-fit: cover;
+        display: block;
+      }
+
+      .avatar-edit {
+        position: absolute;
+        bottom: 4px;
+        right: 4px;
+        width: 34px;
+        height: 34px;
+        background: linear-gradient(135deg, #2ab5c0, #7b5ea7);
+        border-radius: 50%;
+        border: 2px solid #0a1628;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: white;
+        font-size: 14px;
+        transition: 0.2s;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+      }
+
+      .avatar-edit:hover {
+        transform: scale(1.1);
+      }
+
+      .avatar-hint {
+        font-size: 11px;
+        color: #4a6080;
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+      }
+
+      .profile-meta {
+        flex: 1;
+      }
+      .profile-meta h2 {
+        font-size: 22px;
+        color: #00d4bb;
+        margin-bottom: 4px;
+      }
+      .profile-meta .email {
+        color: #4a6080;
+        font-size: 14px;
+        margin-bottom: 10px;
+      }
+
+      .member-badge {
+        background: rgba(42, 181, 192, 0.15);
+        color: #2ab5c0;
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+        border: 1px solid #2ab5c0;
+      }
+
+      .stats-mini {
+        display: flex;
+        gap: 16px;
+        margin-top: 15px;
+        flex-wrap: wrap;
+      }
+
+      .stat-mini {
+        text-align: center;
+        background: #0a1628;
+        border-radius: 10px;
+        padding: 12px 18px;
+        border: 1px solid #1a3d6b;
+      }
+
+      .stat-mini .num {
+        font-size: 22px;
+        font-weight: 700;
+        color: #2ab5c0;
+      }
+      .stat-mini .lbl {
+        font-size: 11px;
+        color: #4a6080;
+        margin-top: 2px;
+      }
+
+      .form-card {
+        background: #0f2040;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+        margin-bottom: 20px;
+        border: 1px solid #1a3d6b;
+      }
+
+      .card-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #00d4bb;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #1a3d6b;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+
+      .form-group {
+        margin-bottom: 4px;
+      }
+
+      .form-group label {
+        display: block;
+        font-size: 13px;
+        color: #b0cce0;
+        font-weight: 500;
+        margin-bottom: 7px;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 11px 14px;
+        border: 2px solid #1a3d6b;
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        transition: 0.2s;
+        background: #0a1628;
+        color: #b0cce0;
+      }
+
+      .form-group input::placeholder {
+        color: #4a6080;
+      }
+      .form-group input:focus {
+        border-color: #2ab5c0;
+        outline: none;
+      }
+
+      .form-group input[readonly] {
+        background: #0a1628;
+        color: #4a6080;
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+
+      .hint {
+        font-size: 11px;
+        color: #4a6080;
+        margin-top: 4px;
+      }
+
+      .btn-row {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        padding: 11px 24px;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: 'Inter', sans-serif;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #2ab5c0, #7b5ea7);
+        color: white;
+      }
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #00e5cc, #7b5ea7);
+        transform: translateY(-1px);
+      }
+
+      .btn-secondary {
+        background: rgba(176, 204, 224, 0.1);
+        color: #b0cce0;
+        border: 1px solid #1a3d6b;
+      }
+      .btn-secondary:hover {
+        background: rgba(176, 204, 224, 0.2);
+      }
+
+      .btn-danger {
+        background: rgba(229, 62, 62, 0.15);
+        color: #fc8181;
+        border: 1px solid rgba(229, 62, 62, 0.3);
+        margin-left: 0;
+      }
+      .btn-danger:hover {
+        background: #e53e3e;
+        color: white;
+        border-color: #e53e3e;
+      }
+
+      .alert {
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 13px;
+        margin-top: 15px;
+        display: none;
+        border-left: 4px solid;
+      }
+
+      .alert.show {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .alert-success {
+        background: rgba(0, 229, 204, 0.1);
+        color: #00e5cc;
+        border-color: #00e5cc;
+      }
+      .alert-error {
+        background: rgba(229, 62, 62, 0.1);
+        color: #fc8181;
+        border-color: #fc8181;
+      }
+      .alert-info {
+        background: rgba(42, 181, 192, 0.1);
+        color: #2ab5c0;
+        border-color: #2ab5c0;
+      }
+
+      .spinner-sm {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        display: inline-block;
+        margin-right: 8px;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (max-width: 600px) {
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+        .profile-top {
+          flex-direction: column;
+          text-align: center;
+        }
+        .stats-mini {
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <script src="theme.js"></script>
+
+  <body>
+    <div
+      class="sidebar"
+      id="sidebar">
+      <div
+        class="toggle-btn"
+        onclick="toggleSidebar()">
+        <img
+          src="images/arrow (5).png"
+          alt="menu"
+          style="width: 18px; height: 18px" />
+      </div>
+      <div class="profile-section">
+        <img
+          src="images/u-profile (2).jpg"
+          class="profile-img"
+          id="sidebarAvatar" />
+        <div class="profile-info">
+          <h3 id="sidebarName">Loading...</h3>
+          <p id="sidebarEmail"></p>
+        </div>
+      </div>
+      <div style="padding: 15px 0; flex: 1; overflow-y: auto">
+        <div
+          class="menu-item"
+          onclick="nav('user_dashboard.html')">
+          <i class="fas fa-home"></i><span class="menu-label">Dashboard</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('email_check.html')">
+          <i class="fas fa-shield-alt"></i
+          ><span class="menu-label">Check Email</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('history.html')">
+          <i class="fas fa-history"></i
+          ><span class="menu-label">My History</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('reports.html')">
+          <i class="fas fa-chart-bar"></i
+          ><span class="menu-label">My Reports</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('user_feedback.html')">
+          <i class="fas fa-comment-alt"></i
+          ><span class="menu-label">Feedback</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('pattern.html')">
+          <i class="fas fa-exclamation-triangle"></i
+          ><span class="menu-label">Patterns</span>
+        </div>
+        <div class="menu-item active">
+          <i class="fas fa-user"></i><span class="menu-label">Profile</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('user_settings.html')">
+          <i class="fas fa-cog"></i><span class="menu-label">Settings</span>
+        </div>
+      </div>
+      <button
+        class="logout-btn"
+        onclick="handleLogout()">
+        <img
+          src="images/rename (2).png"
+          alt="logout"
+          style="width: 18px; height: 18px" />
+        <span class="menu-label">Logout</span>
+      </button>
+    </div>
+
+    <div class="main">
+      <div class="page-header">
+        <h1>My Profile</h1>
+        <p>Manage your account information</p>
+      </div>
+
+      <div class="profile-top">
+        <div class="avatar-section">
+          <div class="avatar-wrap">
+            <img
+              id="mainAvatar"
+              src="images/u-profile (2).jpg"
+              alt="Profile Photo" />
+            <div
+              class="avatar-edit"
+              onclick="document.getElementById('avatarInput').click()"
+              title="Upload photo">
+              <img
+                src="images/camera (1).png"
+                alt="camera"
+                style="width: 20px; height: 20px" />
+            </div>
+          </div>
+          <input
+            type="file"
+            id="avatarInput"
+            accept="image/*"
+            style="display: none"
+            onchange="uploadAvatar(event)" />
+          <div class="avatar-hint">
+            Click
+            <img
+              src="images/camera (1).png"
+              alt="camera"
+              style="width: 16px; height: 16px" />
+            to upload photo
+          </div>
+        </div>
+
+        <div class="profile-meta">
+          <h2 id="displayName">Loading...</h2>
+          <div
+            class="email"
+            id="displayEmail"></div>
+          <span class="member-badge"
+            >Member since <span id="memberDate">-</span></span
+          >
+          <div class="stats-mini">
+            <div class="stat-mini">
+              <div
+                class="num"
+                id="statTotal">
+                -
+              </div>
+              <div class="lbl">Total Scans</div>
+            </div>
+            <div class="stat-mini">
+              <div
+                class="num"
+                id="statPhishing"
+                style="color: #fc8181">
+                -
+              </div>
+              <div class="lbl">Phishing</div>
+            </div>
+            <div class="stat-mini">
+              <div
+                class="num"
+                id="statSafe"
+                style="color: #00e5cc">
+                -
+              </div>
+              <div class="lbl">Safe</div>
+            </div>
+            <div class="stat-mini">
+              <div
+                class="num"
+                id="statConf"
+                style="color: #b388ff">
+                -
+              </div>
+              <div class="lbl">Avg Conf.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit Profile -->
+      <div class="form-card">
+        <div class="card-title">
+          <img
+            src="images/profile.png"
+            alt="profile"
+            style="width: 20px; height: 20px" />
+          Edit Profile
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Username <span style="color: #fc8181">*</span></label>
+            <input
+              type="text"
+              id="fieldUsername"
+              placeholder="Your username" />
+            <div class="hint">Letters, numbers and underscore only</div>
+          </div>
+          <div class="form-group">
+            <label>Display Name</label>
+            <input
+              type="text"
+              id="fieldDisplayName"
+              placeholder="Optional display name" />
+            <div class="hint">Shown on dashboard, can differ from username</div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button
+            class="btn btn-primary"
+            onclick="saveProfile()"
+            id="saveProfileBtn">
+            <i class="fas fa-save"></i> Save Changes
+          </button>
+          <button
+            class="btn btn-secondary"
+            onclick="loadProfile()">
+            <i class="fas fa-undo"></i> Reset
+          </button>
+        </div>
+        <div
+          id="profileAlert"
+          class="alert"></div>
+      </div>
+
+      <!-- Change Password -->
+      <div class="form-card">
+        <div class="card-title">
+          <img
+            src="images/password (1).png"
+            alt="password"
+            style="width: 20px; height: 20px" />
+          Change Password
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>New Password</label>
+            <input
+              type="password"
+              id="newPass"
+              placeholder="Min 6 characters" />
+          </div>
+          <div class="form-group">
+            <label>Confirm Password</label>
+            <input
+              type="password"
+              id="confirmPass"
+              placeholder="Repeat new password" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button
+            class="btn btn-primary"
+            onclick="changePassword()">
+            <i class="fas fa-key"></i> Update Password
+          </button>
+        </div>
+        <div
+          id="passwordAlert"
+          class="alert"></div>
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="form-card">
+        <div
+          class="card-title"
+          style="color: #fc8181">
+          <img
+            src="images/danger.png"
+            alt="danger"
+            style="width: 20px; height: 20px" />
+          Danger Zone
+        </div>
+        <p style="color: #4a6080; font-size: 14px; margin-bottom: 15px">
+          Permanently delete your account and all data.
+        </p>
+        <button
+          class="btn btn-danger"
+          onclick="deleteAccount()">
+          <i class="fas fa-trash"></i> Delete My Account
+        </button>
+        <div
+          id="dangerAlert"
+          class="alert"></div>
+      </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+      const API_BASE = 'http://localhost:8000';
+
+      function nav(url) {
+        window.location.href = url;
+      }
+      function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('collapsed');
+      }
+      function handleLogout() {
+        localStorage.removeItem('user');
+        window.location.href = 'user_login.html';
+      }
+
+      function loadAvatar() {
+        const user = API.getCurrentUser();
+        const saved = localStorage.getItem(`avatar_${user.user_id}`);
+        if (saved) {
+          document.getElementById('mainAvatar').src = saved;
+          document.getElementById('sidebarAvatar').src = saved;
+        }
+      }
+
+      function uploadAvatar(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) {
+          showAlert(
+            'profileAlert',
+            ' Image too large. Max 2MB allowed.',
+            'error',
+          );
+          event.target.value = '';
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const base64 = e.target.result;
+          const user = API.getCurrentUser();
+          try {
+            localStorage.setItem(`avatar_${user.user_id}`, base64);
+            document.getElementById('mainAvatar').src = base64;
+            document.getElementById('sidebarAvatar').src = base64;
+            showAlert('profileAlert', ' Profile picture updated!', 'success');
+          } catch (err) {
+            showAlert(
+              'profileAlert',
+              'Storage full. Try a smaller image.',
+              'error',
+            );
+          }
+        };
+        reader.onerror = function () {
+          showAlert('profileAlert', 'Failed to read image file.', 'error');
+        };
+        reader.readAsDataURL(file);
+        event.target.value = '';
+      }
+
+      async function loadProfile() {
+        const user = API.getCurrentUser();
+        document.getElementById('sidebarName').textContent =
+          user.username || 'User';
+        document.getElementById('sidebarEmail').textContent = user.email || '';
+        loadAvatar();
+
+        try {
+          const res = await fetch(`${API_BASE}/api/users/me`, {
+            headers: { Authorization: `Bearer ${user.access_token}` },
+          });
+          const profile = await res.json();
+          document.getElementById('displayName').textContent =
+            profile.username || user.username || 'User';
+          document.getElementById('displayEmail').textContent =
+            profile.email || '';
+          document.getElementById('fieldUsername').value =
+            profile.username || '';
+          const savedDisplay =
+            localStorage.getItem(`displayName_${user.user_id}`) || '';
+          document.getElementById('fieldDisplayName').value = savedDisplay;
+          if (profile.created_at) {
+            const d = new Date(profile.created_at);
+            document.getElementById('memberDate').textContent =
+              d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+          }
+        } catch (e) {
+          document.getElementById('displayName').textContent =
+            user.username || 'User';
+          document.getElementById('fieldUsername').value = user.username || '';
+        }
+
+        try {
+          const res = await fetch(
+            `${API_BASE}/api/user/${user.user_id}/stats`,
+            {
+              headers: { Authorization: `Bearer ${user.access_token}` },
+            },
+          );
+          const data = await res.json();
+          const s = data.stats || {};
+          const total = s.total_scans || 0;
+          const phishing = s.phishing_count || 0;
+          document.getElementById('statTotal').textContent = total;
+          document.getElementById('statPhishing').textContent = phishing;
+          document.getElementById('statSafe').textContent = total - phishing;
+          document.getElementById('statConf').textContent =
+            (s.avg_confidence || 0).toFixed(1) + '%';
+        } catch (e) {
+          ['statTotal', 'statPhishing', 'statSafe'].forEach(
+            (id) => (document.getElementById(id).textContent = '0'),
+          );
+          document.getElementById('statConf').textContent = '0%';
+        }
+      }
+
+      async function saveProfile() {
+        const user = API.getCurrentUser();
+        const newUsername = document
+          .getElementById('fieldUsername')
+          .value.trim();
+        const displayName = document
+          .getElementById('fieldDisplayName')
+          .value.trim();
+        const btn = document.getElementById('saveProfileBtn');
+
+        if (!newUsername) {
+          showAlert('profileAlert', ' Username cannot be empty', 'error');
+          return;
+        }
+        if (newUsername.length < 3) {
+          showAlert(
+            'profileAlert',
+            ' Username must be at least 3 characters',
+            'error',
+          );
+          return;
+        }
+        if (/[^a-zA-Z0-9_]/.test(newUsername)) {
+          showAlert(
+            'profileAlert',
+            'Only letters, numbers and underscore allowed',
+            'error',
+          );
+          return;
+        }
+
+        btn.innerHTML = '<span class="spinner-sm"></span> Saving...';
+        btn.disabled = true;
+
+        try {
+          const res = await fetch(`${API_BASE}/api/users/me`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${user.access_token}`,
+            },
+            body: JSON.stringify({ username: newUsername }),
+          });
+          if (res.ok) {
+            user.username = newUsername;
+            user.name = displayName || newUsername;
+            localStorage.setItem('user', JSON.stringify(user));
+            localStorage.setItem(`displayName_${user.user_id}`, displayName);
+            document.getElementById('displayName').textContent =
+              displayName || newUsername;
+            document.getElementById('sidebarName').textContent = newUsername;
+            showAlert(
+              'profileAlert',
+              ' Profile updated successfully!',
+              'success',
+            );
+          } else {
+            const err = await res.json();
+            showAlert(
+              'profileAlert',
+              ` ${err.detail || 'Update failed'}`,
+              'error',
+            );
+          }
+        } catch (e) {
+          user.username = newUsername;
+          user.name = displayName || newUsername;
+          localStorage.setItem('user', JSON.stringify(user));
+          localStorage.setItem(`displayName_${user.user_id}`, displayName);
+          document.getElementById('displayName').textContent =
+            displayName || newUsername;
+          document.getElementById('sidebarName').textContent = newUsername;
+          showAlert(
+            'profileAlert',
+            'Saved locally (backend update pending)',
+            'info',
+          );
+        } finally {
+          btn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+          btn.disabled = false;
+        }
+      }
+
+      async function changePassword() {
+        const newPass = document.getElementById('newPass').value;
+        const confirmPass = document.getElementById('confirmPass').value;
+        if (!newPass) {
+          showAlert('passwordAlert', ' Enter new password', 'error');
+          return;
+        }
+        if (newPass.length < 6) {
+          showAlert('passwordAlert', 'Minimum 6 characters', 'error');
+          return;
+        }
+        if (newPass !== confirmPass) {
+          showAlert('passwordAlert', ' Passwords do not match', 'error');
+          return;
+        }
+        showAlert(
+          'passwordAlert',
+          ' Password change coming soon. Contact admin to reset.',
+          'info',
+        );
+        document.getElementById('newPass').value = '';
+        document.getElementById('confirmPass').value = '';
+      }
+
+      function deleteAccount() {
+        if (
+          confirm(
+            ' Delete your account permanently? All data will be lost. Cannot be undone!',
+          )
+        ) {
+          const user = API.getCurrentUser();
+          localStorage.removeItem('user');
+          localStorage.removeItem('isLoggedIn');
+          localStorage.removeItem(`avatar_${user.user_id}`);
+          localStorage.removeItem(`displayName_${user.user_id}`);
+          window.location.href = 'register.html';
+        }
+      }
+
+      function showAlert(id, msg, type) {
+        const el = document.getElementById(id);
+        el.innerHTML = msg;
+        el.className = `alert alert-${type} show`;
+        setTimeout(() => el.classList.remove('show'), 4000);
+      }
+
+      window.onload = async function () {
+        if (!API.isLoggedIn()) {
+          window.location.href = 'user_login.html';
+          return;
+        }
+        await loadProfile();
+      };
+    </script>
+  </body>
+</html>

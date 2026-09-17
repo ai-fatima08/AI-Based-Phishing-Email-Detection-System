@@ -1,0 +1,1077 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>Admin Settings AI Phishing Detection</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet" />
+    <style>
+      :root {
+        --bg-main: #0a1628;
+        --bg-card: #0f2040;
+        --bg-border: #1a3d6b;
+        --accent-teal: #2ab5c0;
+        --accent-teal-hover: #00e5cc;
+        --accent-purple: #7b5ea7;
+        --text-body: #b0cce0;
+        --text-heading: #00d4bb;
+        --text-white: #e8f4ff;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+      }
+      body {
+        background: var(--bg-main);
+        display: flex;
+        min-height: 100vh;
+        width: 100%;
+        color: var(--text-body);
+      }
+
+      .sidebar {
+        width: 240px;
+        background: linear-gradient(180deg, #071020 0%, #0a1e3d 100%);
+        color: var(--text-white);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        min-height: 100vh;
+        transition: width 0.3s ease;
+        overflow: hidden;
+        border-right: 1px solid var(--bg-border);
+      }
+      .sidebar.collapsed {
+        width: 60px;
+      }
+      .sidebar.collapsed .sidebar-brand p,
+      .sidebar.collapsed .admin-name,
+      .sidebar.collapsed .role-badge,
+      .sidebar.collapsed .nav-label,
+      .sidebar.collapsed .logout-text {
+        display: none;
+      }
+      .sidebar.collapsed .nav-item {
+        justify-content: center;
+        padding: 12px 0;
+      }
+      .sidebar.collapsed .admin-avatar {
+        margin: 10px auto;
+      }
+      .sidebar.collapsed .sidebar-profile {
+        padding: 10px 0;
+      }
+      .sidebar.collapsed .sidebar-brand {
+        justify-content: center;
+        padding: 15px 0;
+      }
+      .sidebar.collapsed .brand-text {
+        display: none;
+      }
+
+      .sidebar-brand {
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--bg-border);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: space-between;
+      }
+      .brand-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .brand-icon {
+        width: 34px;
+        height: 34px;
+        background: rgba(42, 181, 192, 0.2);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+        border: 1px solid rgba(42, 181, 192, 0.3);
+      }
+      .brand-text h2 {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-white);
+      }
+      .brand-text p {
+        font-size: 10px;
+        opacity: 0.6;
+        margin-top: 1px;
+        color: var(--text-body);
+      }
+      .toggle-sidebar-btn {
+        background: rgba(42, 181, 192, 0.15);
+        border: none;
+        color: var(--text-white);
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: 0.2s;
+      }
+      .toggle-sidebar-btn:hover {
+        background: rgba(0, 229, 204, 0.3);
+      }
+      .sidebar-profile {
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--bg-border);
+        text-align: center;
+      }
+      .admin-avatar {
+        width: 56px;
+        height: 56px;
+        background: rgba(42, 181, 192, 0.15);
+        border-radius: 50%;
+        border: 2px solid var(--accent-teal);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin: 0 auto 8px;
+        overflow: hidden;
+      }
+      .admin-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+      }
+      .admin-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-white);
+      }
+      .role-badge {
+        display: inline-block;
+        background: linear-gradient(
+          135deg,
+          var(--accent-teal),
+          var(--accent-teal-hover)
+        );
+        color: var(--bg-main);
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 20px;
+        margin-top: 4px;
+      }
+      .notif-bell-btn {
+        background: rgba(42, 181, 192, 0.15);
+        border: none;
+        color: var(--text-white);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        transition: 0.2s;
+        position: relative;
+        margin: 6px auto 0;
+      }
+      .notif-bell-btn:hover {
+        background: rgba(0, 229, 204, 0.3);
+      }
+      .notif-bell-badge {
+        position: absolute;
+        top: -3px;
+        right: -3px;
+        background: var(--accent-purple);
+        color: white;
+        font-size: 8px;
+        font-weight: 700;
+        min-width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 2px;
+      }
+      .sidebar-nav {
+        flex: 1;
+        padding: 10px 8px;
+        overflow-y: auto;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+        color: var(--text-body);
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 2px;
+        white-space: nowrap;
+      }
+      .nav-item i {
+        font-size: 15px;
+        width: 18px;
+        flex-shrink: 0;
+      }
+      .nav-item:hover {
+        background: rgba(42, 181, 192, 0.15);
+        color: var(--accent-teal-hover);
+      }
+      .nav-item.active {
+        background: rgba(42, 181, 192, 0.2);
+        color: var(--accent-teal-hover);
+        border-left: 3px solid var(--accent-teal);
+        padding-left: 9px;
+      }
+      .sidebar-footer {
+        padding: 10px 10px 16px;
+      }
+      .logout-btn {
+        width: 100%;
+        padding: 10px;
+        background: rgba(42, 181, 192, 0.1);
+        color: var(--text-white);
+        border: 1px solid var(--bg-border);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: 0.2s;
+        white-space: nowrap;
+      }
+      .logout-btn:hover {
+        background: #c0392b;
+        border-color: #c0392b;
+      }
+
+      .main-content {
+        flex: 1;
+        min-width: 0;
+        overflow-y: auto;
+        padding: 26px;
+        background: var(--bg-main);
+      }
+      .page-header {
+        margin-bottom: 28px;
+      }
+      .page-header h1 {
+        font-size: 26px;
+        color: var(--text-heading);
+        font-weight: 700;
+      }
+      .page-header p {
+        color: var(--text-body);
+        font-size: 13px;
+        margin-top: 4px;
+      }
+
+      .settings-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .card {
+        background: var(--bg-card);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--bg-border);
+      }
+      .card.full-width {
+        grid-column: 1/-1;
+      }
+      .card h3 {
+        font-size: 16px;
+        color: var(--text-white);
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--bg-border);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .card h3 i {
+        color: var(--accent-teal);
+      }
+
+      .status-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(26, 61, 107, 0.5);
+        font-size: 13px;
+      }
+      .status-row:last-child {
+        border-bottom: none;
+      }
+      .status-row .label {
+        color: var(--text-body);
+        font-weight: 500;
+      }
+      .status-row .value {
+        font-weight: 600;
+        color: var(--text-white);
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .pill.green {
+        background: rgba(42, 181, 192, 0.15);
+        color: var(--accent-teal-hover);
+        border: 1px solid rgba(42, 181, 192, 0.3);
+      }
+      .pill.red {
+        background: rgba(231, 76, 60, 0.15);
+        color: #ff6b6b;
+        border: 1px solid rgba(231, 76, 60, 0.3);
+      }
+      .pill.blue {
+        background: rgba(123, 94, 167, 0.15);
+        color: #b39ddb;
+        border: 1px solid rgba(123, 94, 167, 0.3);
+      }
+      .pill.orange {
+        background: rgba(243, 156, 18, 0.15);
+        color: #f39c12;
+        border: 1px solid rgba(243, 156, 18, 0.3);
+      }
+
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+      }
+      .dot.green {
+        background: var(--accent-teal);
+      }
+      .dot.red {
+        background: #e74c3c;
+      }
+
+      .spinner-sm {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(42, 181, 192, 0.2);
+        border-top: 2px solid var(--accent-teal);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .btn-primary {
+        background: linear-gradient(
+          135deg,
+          var(--accent-teal),
+          var(--accent-teal-hover)
+        );
+        color: var(--bg-main);
+      }
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(42, 181, 192, 0.3);
+      }
+      .btn-danger {
+        background: #e74c3c;
+        color: white;
+      }
+      .btn-danger:hover {
+        background: #c0392b;
+      }
+      .btn-secondary {
+        background: rgba(42, 181, 192, 0.1);
+        color: var(--text-body);
+        border: 1px solid var(--bg-border);
+      }
+      .btn-secondary:hover {
+        background: rgba(42, 181, 192, 0.2);
+        color: var(--text-white);
+      }
+      .btn-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+        flex-wrap: wrap;
+      }
+
+      .model-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 5px;
+      }
+      .model-stat {
+        background: rgba(42, 181, 192, 0.06);
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        border: 1px solid var(--bg-border);
+      }
+      .model-stat .num {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-heading);
+      }
+      .model-stat .lbl {
+        font-size: 11px;
+        color: var(--text-body);
+        margin-top: 4px;
+      }
+
+      .msg {
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-size: 13px;
+        margin-top: 12px;
+        display: none;
+      }
+      .msg.success {
+        background: rgba(42, 181, 192, 0.12);
+        color: var(--accent-teal-hover);
+        border-left: 3px solid var(--accent-teal);
+        display: block;
+      }
+      .msg.error {
+        background: rgba(231, 76, 60, 0.12);
+        color: #ff6b6b;
+        border-left: 3px solid #e74c3c;
+        display: block;
+      }
+
+      .refresh-time {
+        font-size: 11px;
+        color: var(--text-body);
+        opacity: 0.5;
+        margin-top: 8px;
+      }
+
+      /* Toggle switches */
+      .toggle-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 0;
+        border-bottom: 1px solid rgba(26, 61, 107, 0.5);
+      }
+      .toggle-row:last-of-type {
+        border-bottom: none;
+      }
+      .toggle-info h4 {
+        font-size: 13px;
+        color: var(--text-white);
+        margin-bottom: 3px;
+      }
+      .toggle-info p {
+        font-size: 11px;
+        color: var(--text-body);
+        opacity: 0.7;
+      }
+      .toggle {
+        width: 42px;
+        height: 22px;
+        border-radius: 11px;
+        background: rgba(26, 61, 107, 0.8);
+        cursor: pointer;
+        position: relative;
+        transition: 0.3s;
+        flex-shrink: 0;
+        border: 1px solid var(--bg-border);
+      }
+      .toggle::after {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--text-body);
+        top: 2px;
+        left: 2px;
+        transition: 0.3s;
+      }
+      .toggle.on {
+        background: var(--accent-teal);
+        border-color: var(--accent-teal);
+      }
+      .toggle.on::after {
+        left: 22px;
+        background: var(--bg-main);
+      }
+
+      .danger-box {
+        background: rgba(231, 76, 60, 0.06);
+        border: 1px solid rgba(231, 76, 60, 0.25);
+        border-radius: 10px;
+        padding: 20px;
+      }
+      .danger-box h4 {
+        color: #ff6b6b;
+        font-size: 14px;
+        margin-bottom: 8px;
+      }
+      .danger-box p {
+        font-size: 12px;
+        color: var(--text-body);
+        margin-bottom: 15px;
+        opacity: 0.8;
+      }
+    </style>
+  </head>
+  <script src="theme.js"></script>
+
+  <body>
+    <div
+      class="sidebar"
+      id="adminSidebar">
+      <div class="sidebar-brand">
+        <div class="brand-left">
+          <div class="brand-icon">
+            <img
+              src="images/shield.png"
+              alt="shield"
+              style="width: 22px; height: 22px" />
+          </div>
+          <div class="brand-text">
+            <h2>Admin Panel</h2>
+            <p>Phishing Detector</p>
+          </div>
+        </div>
+        <button
+          class="toggle-sidebar-btn"
+          onclick="toggleAdminSidebar()">
+          <img
+            src="images/toggle (1).png"
+            alt="menu"
+            style="width: 18px; height: 18px" />
+        </button>
+      </div>
+      <div class="sidebar-profile">
+        <div
+          class="admin-avatar"
+          id="sidebarAvatarDiv">
+          <img
+            src="images/software-engineer.png"
+            alt="admin"
+            id="sidebarAvatarIcon"
+            style="width: 56px; height: 56px; border-radius: 50%" />
+        </div>
+        <div
+          class="admin-name"
+          id="adminName">
+          admin
+        </div>
+        <div class="role-badge">ADMIN</div>
+        <button
+          class="notif-bell-btn"
+          onclick="nav('admin_notifications.html')"
+          title="Notifications">
+          <img
+            src="images/notification-bell (1).png"
+            alt="notifications"
+            style="width: 18px; height: 18px" />
+          <span
+            class="notif-bell-badge"
+            id="notifBadge"
+            style="display: none"
+            >0</span
+          >
+        </button>
+      </div>
+      <div class="sidebar-nav">
+        <div
+          class="nav-item"
+          onclick="nav('admin_dashboard.html')">
+          <i class="fas fa-th-large"></i
+          ><span class="nav-label"> Dashboard</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('manage_users.html')">
+          <i class="fas fa-users"></i
+          ><span class="nav-label"> Manage Users</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('email_scans.html')">
+          <i class="fas fa-envelope-open-text"></i
+          ><span class="nav-label"> Email Scans</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('admin_analytics.html')">
+          <i class="fas fa-chart-line"></i
+          ><span class="nav-label"> Analytics</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('admin_feedback.html')">
+          <i class="fas fa-comments"></i
+          ><span class="nav-label"> Feedback</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('admin_model.html')">
+          <i class="fas fa-brain"></i><span class="nav-label"> ML Model</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('admin_profile.html')">
+          <i class="fas fa-user-circle"></i
+          ><span class="nav-label"> My Profile</span>
+        </div>
+        <div class="nav-item active">
+          <i class="fas fa-cog"></i><span class="nav-label"> Settings</span>
+        </div>
+      </div>
+      <div class="sidebar-footer">
+        <button
+          class="logout-btn"
+          onclick="adminLogout()">
+          <img
+            src="images/rename (1).png"
+            alt="logout"
+            style="width: 25px; height: 25px" />
+          <span class="logout-text"> Logout</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="page-header">
+        <h1>System Settings</h1>
+        <p>Manage system configuration and monitor status</p>
+      </div>
+      <div class="settings-grid">
+        <div class="card">
+          <h3><i class="fas fa-server"></i> Backend & Database Status</h3>
+          <div id="backendStatus">
+            <div class="status-row">
+              <span class="label">Backend API</span
+              ><span class="spinner-sm"></span>
+            </div>
+          </div>
+          <div class="btn-group">
+            <button
+              class="btn btn-secondary"
+              onclick="checkStatus()">
+              <img
+                src="images/refresh.png"
+                alt="refresh"
+                style="width: 14px; height: 14px" />
+              Refresh
+            </button>
+          </div>
+          <div
+            class="refresh-time"
+            id="statusTime"></div>
+        </div>
+        <div class="card">
+          <h3><i class="fas fa-brain"></i> ML Model Information</h3>
+          <div id="modelInfo">
+            <div style="text-align: center; padding: 20px">
+              <div class="spinner-sm"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3><i class="fas fa-chart-pie"></i> System Statistics</h3>
+          <div id="systemStats">
+            <div style="text-align: center; padding: 20px">
+              <div class="spinner-sm"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3><i class="fas fa-bell"></i> Notification Settings</h3>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <h4>High Risk Alerts</h4>
+              <p>Alert when high risk phishing detected</p>
+            </div>
+            <div
+              class="toggle on"
+              id="toggle1"
+              onclick="toggleSetting(this, 'highRiskAlerts')"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <h4>New User Registration</h4>
+              <p>Notify on new user signup</p>
+            </div>
+            <div
+              class="toggle on"
+              id="toggle2"
+              onclick="toggleSetting(this, 'newUserNotif')"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <h4>Daily Summary Report</h4>
+              <p>Receive daily scan summary</p>
+            </div>
+            <div
+              class="toggle"
+              id="toggle3"
+              onclick="toggleSetting(this, 'dailySummary')"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <h4>System Error Alerts</h4>
+              <p>Alert on backend/DB errors</p>
+            </div>
+            <div
+              class="toggle on"
+              id="toggle4"
+              onclick="toggleSetting(this, 'errorAlerts')"></div>
+          </div>
+          <div class="btn-group">
+            <button
+              class="btn btn-primary"
+              onclick="saveNotifSettings()">
+              <i class="fas fa-save"></i> Save Settings
+            </button>
+          </div>
+          <div
+            id="notifMsg"
+            class="msg"></div>
+        </div>
+
+        <div class="card full-width">
+          <h3>
+            <i
+              class="fas fa-exclamation-triangle"
+              style="color: #ff6b6b"></i>
+            <span style="color: #ff6b6b">Danger Zone</span>
+          </h3>
+          <div
+            style="
+              display: grid;
+              grid-template-columns: 1fr 1fr 1fr;
+              gap: 20px;
+            ">
+            <div class="danger-box">
+              <h4>Clear All Scans</h4>
+              <p>Delete all email scan records from database</p>
+              <button
+                class="btn btn-danger"
+                onclick="confirmAction('scans')">
+                <img
+                  src="images/trash.png"
+                  alt="trash"
+                  style="width: 14px; height: 14px" />
+                Clear Scans
+              </button>
+            </div>
+            <div class="danger-box">
+              <h4>Clear Activity Log</h4>
+              <p>Clear admin activity log from browser</p>
+              <button
+                class="btn btn-danger"
+                onclick="clearActivityLog()">
+                <img
+                  src="images/folderr.png"
+                  alt="folder"
+                  style="width: 14px; height: 14px" />
+                Clear Log
+              </button>
+            </div>
+            <div class="danger-box">
+              <h4>Export All Data</h4>
+              <p>Download all system data as JSON</p>
+              <button
+                class="btn btn-secondary"
+                onclick="exportData()">
+                <img
+                  src="images/export.png"
+                  alt="export"
+                  style="width: 14px; height: 14px" />
+                Export Data
+              </button>
+            </div>
+          </div>
+          <div
+            id="dangerMsg"
+            class="msg"
+            style="margin-top: 15px"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function nav(url) {
+        window.location.href = url;
+      }
+      function adminLogout() {
+        if (confirm('Logout from admin panel?')) {
+          localStorage.removeItem('admin');
+          localStorage.removeItem('adminLoggedIn');
+          window.location.href = 'admin_login.html';
+        }
+      }
+      function checkAdminAuth() {
+        const admin = JSON.parse(localStorage.getItem('admin') || 'null');
+        if (!admin || admin.role !== 'admin') {
+          window.location.href = 'admin_login.html';
+          return null;
+        }
+        if (document.getElementById('adminName'))
+          document.getElementById('adminName').textContent =
+            admin.username || 'admin';
+        return admin;
+      }
+      function toggleAdminSidebar() {
+        const sb = document.getElementById('adminSidebar');
+        sb.classList.toggle('collapsed');
+        localStorage.setItem(
+          'adminSidebarCollapsed',
+          sb.classList.contains('collapsed') ? '1' : '0',
+        );
+      }
+      function initAdminSidebar() {
+        if (localStorage.getItem('adminSidebarCollapsed') === '1') {
+          const sb = document.getElementById('adminSidebar');
+          if (sb) sb.classList.add('collapsed');
+        }
+        const saved = localStorage.getItem('adminAvatar');
+        const div = document.getElementById('sidebarAvatarDiv');
+        if (saved && div)
+          div.innerHTML =
+            '<img src="' +
+            saved +
+            '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+      }
+
+      const API = 'http://localhost:8000';
+
+      async function checkStatus() {
+        const admin = checkAdminAuth();
+        document.getElementById('backendStatus').innerHTML =
+          '<div class="status-row"><span class="label">Backend API</span><span class="spinner-sm"></span></div><div class="status-row"><span class="label">Database</span><span class="spinner-sm"></span></div>';
+        try {
+          const res = await fetch(`${API}/api/health`);
+          const data = await res.json();
+          const dbOk = data.database === 'connected';
+          const mlOk = data.ml_model === 'loaded';
+          document.getElementById('backendStatus').innerHTML = `
+                    <div class="status-row"><span class="label">Backend API</span><span class="pill green"><div class="dot green"></div> Online</span></div>
+                    <div class="status-row"><span class="label">Database</span><span class="pill ${dbOk ? 'green' : 'red'}"><div class="dot ${dbOk ? 'green' : 'red'}"></div> ${dbOk ? 'Connected' : 'Disconnected'}</span></div>
+                    <div class="status-row"><span class="label">ML Model</span><span class="pill ${mlOk ? 'blue' : 'orange'}">${mlOk ? 'Loaded' : 'Fallback'}</span></div>
+                    <div class="status-row"><span class="label">API Version</span><span class="value">v1.0.0</span></div>
+                    <div class="status-row"><span class="label">Server Time</span><span class="value">${new Date(data.timestamp).toLocaleTimeString()}</span></div>`;
+          document.getElementById('statusTime').textContent =
+            `Last checked: ${new Date().toLocaleTimeString()}`;
+        } catch (e) {
+          document.getElementById('backendStatus').innerHTML =
+            '<div class="status-row"><span class="label">Backend API</span><span class="pill red"><div class="dot red"></div> Offline</span></div><div class="status-row"><span class="label">Database</span><span class="pill red"><div class="dot red"></div> Unknown</span></div>';
+        }
+      }
+      async function loadModelInfo() {
+        const admin = checkAdminAuth();
+        try {
+          const res = await fetch(`${API}/api/model/info`, {
+            headers: { Authorization: `Bearer ${admin.access_token}` },
+          });
+          const data = await res.json();
+          if (data.status === 'loaded') {
+            document.getElementById('modelInfo').innerHTML = `
+                        <div class="model-grid">
+                            <div class="model-stat"><div class="num">${data.n_estimators || 200}</div><div class="lbl">Trees</div></div>
+                            <div class="model-stat"><div class="num">${(data.features || 3000).toLocaleString()}</div><div class="lbl">Features</div></div>
+                            <div class="model-stat"><div class="num" style="color:var(--accent-teal-hover)">92.3%</div><div class="lbl">Accuracy</div></div>
+                            <div class="model-stat"><div class="num" style="color:var(--accent-teal);font-size:14px">${data.model_type || 'RF'}</div><div class="lbl">Algorithm</div></div>
+                        </div>
+                        <div class="status-row" style="margin-top:15px"><span class="label">Status</span><span class="pill green">Active</span></div>
+                        <div class="status-row"><span class="label">Vectorizer</span><span class="value">HashingVectorizer</span></div>`;
+          } else {
+            document.getElementById('modelInfo').innerHTML =
+              '<p style="color:#ff6b6b;font-size:13px">Model not loaded</p>';
+          }
+        } catch (e) {
+          document.getElementById('modelInfo').innerHTML =
+            '<p style="color:#ff6b6b;font-size:13px">Cannot fetch model info</p>';
+        }
+      }
+      async function loadSystemStats() {
+        const admin = checkAdminAuth();
+        try {
+          const res = await fetch(`${API}/api/admin/stats`, {
+            headers: { Authorization: `Bearer ${admin.access_token}` },
+          });
+          const data = await res.json();
+          const s = data.stats || {};
+          document.getElementById('systemStats').innerHTML = `
+                    <div class="status-row"><span class="label">Total Users</span><span class="value">${s.total_users || 0}</span></div>
+                    <div class="status-row"><span class="label">Total Scans</span><span class="value">${s.total_scans || 0}</span></div>
+                    <div class="status-row"><span class="label">Phishing Detected</span><span class="value" style="color:#ff6b6b">${s.phishing_detected || 0}</span></div>
+                    <div class="status-row"><span class="label">Safe Emails</span><span class="value" style="color:var(--accent-teal-hover)">${s.safe_emails || 0}</span></div>
+                    <div class="status-row"><span class="label">Scans Today</span><span class="value">${s.today_scans || 0}</span></div>
+                    <div class="status-row"><span class="label">Active Users Today</span><span class="value">${s.active_users_today || 0}</span></div>`;
+        } catch (e) {
+          document.getElementById('systemStats').innerHTML =
+            '<p style="color:#ff6b6b;font-size:13px">Cannot fetch stats</p>';
+        }
+      }
+      function toggleSetting(el, key) {
+        el.classList.toggle('on');
+        const s = JSON.parse(localStorage.getItem('adminSettings') || '{}');
+        s[key] = el.classList.contains('on');
+        localStorage.setItem('adminSettings', JSON.stringify(s));
+      }
+      function loadNotifSettings() {
+        const s = {
+          ...{
+            highRiskAlerts: true,
+            newUserNotif: true,
+            dailySummary: false,
+            errorAlerts: true,
+          },
+          ...JSON.parse(localStorage.getItem('adminSettings') || '{}'),
+        };
+        if (!s.highRiskAlerts)
+          document.getElementById('toggle1').classList.remove('on');
+        if (!s.newUserNotif)
+          document.getElementById('toggle2').classList.remove('on');
+        if (s.dailySummary)
+          document.getElementById('toggle3').classList.add('on');
+        if (!s.errorAlerts)
+          document.getElementById('toggle4').classList.remove('on');
+      }
+      function saveNotifSettings() {
+        const s = {
+          highRiskAlerts: document
+            .getElementById('toggle1')
+            .classList.contains('on'),
+          newUserNotif: document
+            .getElementById('toggle2')
+            .classList.contains('on'),
+          dailySummary: document
+            .getElementById('toggle3')
+            .classList.contains('on'),
+          errorAlerts: document
+            .getElementById('toggle4')
+            .classList.contains('on'),
+        };
+        localStorage.setItem('adminSettings', JSON.stringify(s));
+        const msg = document.getElementById('notifMsg');
+        msg.textContent = 'Settings saved!';
+        msg.className = 'msg success';
+        setTimeout(() => {
+          msg.style.display = 'none';
+        }, 2500);
+      }
+      async function confirmAction(type) {
+        if (type === 'scans') {
+          if (!confirm('Delete ALL scan records?')) return;
+          const msg = document.getElementById('dangerMsg');
+          msg.textContent =
+            'Not implemented for safety — use phpMyAdmin directly.';
+          msg.className = 'msg error';
+        }
+      }
+      function clearActivityLog() {
+        if (!confirm('Clear activity log?')) return;
+        localStorage.removeItem('adminActivityLog');
+        const msg = document.getElementById('dangerMsg');
+        msg.textContent = 'Activity log cleared!';
+        msg.className = 'msg success';
+        setTimeout(() => {
+          msg.style.display = 'none';
+        }, 2000);
+      }
+      async function exportData() {
+        const admin = checkAdminAuth();
+        try {
+          const [sr, ur] = await Promise.all([
+            fetch(`${API}/api/admin/stats`, {
+              headers: { Authorization: `Bearer ${admin.access_token}` },
+            }),
+            fetch(`${API}/api/admin/users?limit=1000`, {
+              headers: { Authorization: `Bearer ${admin.access_token}` },
+            }),
+          ]);
+          const stats = await sr.json();
+          const users = await ur.json();
+          const obj = {
+            exported_at: new Date().toISOString(),
+            system_stats: stats.stats,
+            users: users.users,
+            settings: JSON.parse(localStorage.getItem('adminSettings') || '{}'),
+          };
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(
+            new Blob([JSON.stringify(obj, null, 2)], {
+              type: 'application/json',
+            }),
+          );
+          a.download = `export_${new Date().toISOString().split('T')[0]}.json`;
+          a.click();
+          const msg = document.getElementById('dangerMsg');
+          msg.textContent = 'Data exported!';
+          msg.className = 'msg success';
+          setTimeout(() => {
+            msg.style.display = 'none';
+          }, 2000);
+        } catch (e) {
+          const msg = document.getElementById('dangerMsg');
+          msg.textContent = 'Export failed';
+          msg.className = 'msg error';
+        }
+      }
+      window.onload = function () {
+        const admin = checkAdminAuth();
+        if (admin) {
+          checkStatus();
+          loadModelInfo();
+          loadSystemStats();
+          loadNotifSettings();
+        }
+      };
+      window.addEventListener('DOMContentLoaded', initAdminSidebar);
+    </script>
+  </body>
+</html>

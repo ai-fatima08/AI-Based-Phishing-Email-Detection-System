@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>Login | AI Phishing Detection</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet" />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Poppins', sans-serif;
+      }
+
+      body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0a1628;
+        position: relative;
+        overflow: hidden;
+      }
+
+      body::before {
+        content: '';
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background: rgba(42, 181, 192, 0.06);
+        border-radius: 50%;
+        top: -80px;
+        left: -80px;
+        animation: float 6s ease-in-out infinite;
+      }
+
+      body::after {
+        content: '';
+        position: absolute;
+        width: 400px;
+        height: 400px;
+        background: rgba(123, 94, 167, 0.06);
+        border-radius: 50%;
+        bottom: -150px;
+        right: -150px;
+        animation: float 8s ease-in-out infinite reverse;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+        50% {
+          transform: translate(30px, 20px) scale(1.05);
+        }
+      }
+
+      .form-container {
+        position: relative;
+        z-index: 1;
+        background: rgb(15, 32, 64);
+        border: 1px solid rgb(26, 61, 107);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        padding: 40px;
+        width: 100%;
+        max-width: 450px;
+        margin: 20px;
+        animation: slideUp 0.5s ease-out;
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      h2 {
+        font-size: 26px;
+        font-weight: 600;
+        color: #00d4bb;
+        margin-bottom: 30px;
+        text-align: center;
+        position: relative;
+      }
+
+      h2::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 4px;
+        background: linear-gradient(135deg, #2ab5c0, #7b5ea7);
+        border-radius: 2px;
+      }
+
+      .input-wrapper {
+        position: relative;
+        margin-bottom: 20px;
+      }
+
+      .input-wrapper i {
+        position: absolute;
+        left: 15px;
+        top: 17px;
+        color: #4a6080;
+        font-size: 18px;
+        transition: all 0.3s ease;
+        z-index: 1;
+      }
+
+      input[type='text'],
+      input[type='password'],
+      input[type='email'] {
+        width: 100%;
+        padding: 15px 20px 15px 45px;
+        border: 2px solid #1a3d6b;
+        border-radius: 12px;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        background: #0a1628;
+        color: #b0cce0;
+        font-family: 'Poppins', sans-serif;
+      }
+
+      input[type='text']::placeholder,
+      input[type='password']::placeholder,
+      input[type='email']::placeholder {
+        color: #4a6080;
+      }
+
+      input[type='text']:hover,
+      input[type='password']:hover,
+      input[type='email']:hover,
+      input[type='text']:focus,
+      input[type='password']:focus,
+      input[type='email']:focus {
+        border-color: #2ab5c0;
+        outline: none;
+        box-shadow: 0 5px 20px rgba(42, 181, 192, 0.15);
+      }
+
+      .password-wrapper {
+        position: relative;
+        margin-bottom: 20px;
+      }
+
+      .password-wrapper input {
+        padding-right: 70px;
+      }
+
+      .password-wrapper i {
+        position: absolute;
+        left: 15px;
+        top: 17px;
+        color: #4a6080;
+        font-size: 18px;
+        transition: all 0.3s ease;
+        z-index: 1;
+      }
+
+      .toggle-password {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #2ab5c0;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        padding: 5px 10px;
+        transition: all 0.3s ease;
+        z-index: 1;
+        background: rgba(42, 181, 192, 0.1);
+        border-radius: 20px;
+      }
+
+      .toggle-password:hover {
+        color: #00e5cc;
+        background: rgba(0, 229, 204, 0.2);
+      }
+
+      .form-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 15px 0;
+      }
+
+      .remember-me {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #b0cce0;
+        font-size: 14px;
+        cursor: pointer;
+      }
+
+      .remember-me input[type='checkbox'] {
+        width: 16px;
+        height: 16px;
+        accent-color: #2ab5c0;
+        cursor: pointer;
+      }
+
+      .forgot-link {
+        color: #2ab5c0;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .forgot-link:hover {
+        color: #00e5cc;
+        text-decoration: underline;
+      }
+
+      .login-btn {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, #2ab5c0, #7b5ea7);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 20px 0;
+        position: relative;
+        overflow: hidden;
+        font-family: 'Poppins', sans-serif;
+      }
+
+      .login-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.15),
+          transparent
+        );
+        transition: left 0.5s ease;
+      }
+
+      .login-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0, 229, 204, 0.25);
+        background: linear-gradient(135deg, #00e5cc, #7b5ea7);
+      }
+
+      .login-btn:hover::before {
+        left: 100%;
+      }
+      .login-btn:active {
+        transform: translateY(0);
+      }
+      .login-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+
+      .login-btn.loading {
+        position: relative;
+        color: transparent;
+      }
+
+      .login-btn.loading::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin-left: -10px;
+        margin-top: -10px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .form-link {
+        text-align: center;
+        margin: 15px 0;
+        color: #4a6080;
+        font-size: 14px;
+      }
+
+      .form-link a {
+        color: #2ab5c0;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .form-link a::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(135deg, #2ab5c0, #7b5ea7);
+        transition: width 0.3s ease;
+      }
+
+      .form-link a:hover {
+        color: #00e5cc;
+      }
+      .form-link a:hover::after {
+        width: 100%;
+      }
+
+      .form-link:last-of-type {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #1a3d6b;
+      }
+
+      .form-link:last-of-type a {
+        color: #4a6080;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .form-link:last-of-type a::after {
+        display: none;
+      }
+      .form-link:last-of-type a:hover {
+        color: #2ab5c0;
+      }
+
+      #loginMessage {
+        margin-top: 20px;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        text-align: center;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: none;
+      }
+
+      .error-message {
+        background: rgba(229, 62, 62, 0.15);
+        color: #fc8181;
+        border: 1px solid rgba(229, 62, 62, 0.3);
+        display: block !important;
+      }
+
+      .success-message {
+        background: rgba(0, 229, 204, 0.1);
+        color: #00e5cc;
+        border: 1px solid rgba(0, 229, 204, 0.3);
+        display: block !important;
+      }
+
+      .info-message {
+        background: rgba(42, 181, 192, 0.1);
+        color: #2ab5c0;
+        border: 1px solid rgba(42, 181, 192, 0.3);
+        display: block !important;
+      }
+
+      @media (max-width: 480px) {
+        .form-container {
+          padding: 30px 20px;
+          margin: 15px;
+        }
+        h2 {
+          font-size: 22px;
+        }
+        .form-options {
+          flex-direction: column;
+          gap: 10px;
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="form-container">
+      <h2>User Login</h2>
+      <div class="input-wrapper">
+        <i class="fas fa-user"></i>
+        <input
+          type="text"
+          id="loginUsername"
+          placeholder="Username or Email" />
+      </div>
+
+      <div class="password-wrapper">
+        <i class="fas fa-lock"></i>
+        <input
+          type="password"
+          id="loginPassword"
+          placeholder="Password" />
+        <span
+          class="toggle-password"
+          onclick="togglePassword('loginPassword', this)"
+          >Show</span
+        >
+      </div>
+
+      <div class="form-options">
+        <label class="remember-me">
+          <input
+            type="checkbox"
+            id="rememberMe" />
+          Remember me
+        </label>
+        <a
+          href="#"
+          class="forgot-link"
+          onclick="
+            showForgotPassword();
+            return false;
+          "
+          >Forgot Password?</a
+        >
+      </div>
+
+      <button
+        class="login-btn"
+        onclick="loginUser()"
+        id="loginBtn">
+        Login to Dashboard
+      </button>
+
+      <p class="form-link">
+        Don't have an account? <a href="register.html">Create account →</a>
+      </p>
+
+      <p class="form-link">
+        <a href="index.html"><i class="fas fa-arrow-left"></i> Back to Home</a>
+      </p>
+
+      <div id="loginMessage"></div>
+    </div>
+
+    <script>
+      const API_BASE_URL = 'http://localhost:8000';
+
+      async function togglePassword(fieldId, element) {
+        const passwordInput = document.getElementById(fieldId);
+        if (passwordInput.type === 'password') {
+          passwordInput.type = 'text';
+          element.textContent = 'Hide';
+        } else {
+          passwordInput.type = 'password';
+          element.textContent = 'Show';
+        }
+      }
+
+      async function showForgotPassword() {
+        const messageDiv = document.getElementById('loginMessage');
+        messageDiv.className = 'info-message';
+        messageDiv.innerHTML =
+          ' Please contact administrator to reset your password.';
+      }
+
+      async function showMessage(message, type) {
+        const messageDiv = document.getElementById('loginMessage');
+        messageDiv.innerHTML = message;
+        messageDiv.className = type + '-message';
+      }
+
+      async function loginUser() {
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        const rememberMe = document.getElementById('rememberMe').checked;
+        const loginBtn = document.getElementById('loginBtn');
+        const messageDiv = document.getElementById('loginMessage');
+
+        messageDiv.innerHTML = '';
+        messageDiv.className = '';
+
+        if (!username) {
+          showMessage(' Please enter username or email', 'error');
+          return;
+        }
+        if (!password) {
+          showMessage(' Please enter password', 'error');
+          return;
+        }
+        if (password.length < 6) {
+          showMessage(' Password must be at least 6 characters', 'error');
+          return;
+        }
+
+        loginBtn.classList.add('loading');
+        loginBtn.disabled = true;
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: username, password: password }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+            showMessage(
+              ' Login successful! Redirecting to dashboard...',
+              'success',
+            );
+
+            const userData = {
+              user_id: data.user_id,
+              username: data.username,
+              email: data.email,
+              name: data.username,
+              access_token: data.access_token,
+              token_type: data.token_type,
+              total_scans: data.total_scans,
+              loginTime: new Date().toISOString(),
+            };
+
+            localStorage.setItem('user', JSON.stringify(userData));
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('token', data.access_token);
+            if (rememberMe) localStorage.setItem('rememberMe', 'true');
+
+            loginBtn.classList.remove('loading');
+            loginBtn.disabled = false;
+            setTimeout(() => {
+              window.location.href = 'user_dashboard.html';
+            }, 1500);
+          } else {
+            loginBtn.classList.remove('loading');
+            loginBtn.disabled = false;
+            showMessage(
+              ` ${data.detail || data.message || 'Invalid credentials'}`,
+              'error',
+            );
+          }
+        } catch (error) {
+          loginBtn.classList.remove('loading');
+          loginBtn.disabled = false;
+          showMessage(
+            ' Cannot connect to server. Please make sure:<br>1. Backend is running on http://localhost:8000<br>2. You have registered an account first<br>3. Database connection is working',
+            'error',
+          );
+        }
+      }
+
+      async function checkBackendStatus() {
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/health`);
+          if (response.ok) console.log(' Backend is running');
+        } catch (error) {
+          console.log(' Backend not reachable');
+        }
+      }
+
+      document.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') loginUser();
+      });
+
+      window.onload = function () {
+        document.getElementById('loginUsername').focus();
+
+        if (localStorage.getItem('isLoggedIn') === 'true') {
+          const user = JSON.parse(localStorage.getItem('user') || '{}');
+          if (user.username) {
+            if (
+              confirm(
+                `You were previously logged in as ${user.username}. Go to dashboard?`,
+              )
+            ) {
+              window.location.href = 'user_dashboard.html';
+            } else {
+              localStorage.clear();
+            }
+          } else {
+            localStorage.clear();
+          }
+        }
+
+        checkBackendStatus();
+
+        const registeredUser = sessionStorage.getItem('registeredUser');
+        if (registeredUser) {
+          document.getElementById('loginUsername').value = registeredUser;
+          sessionStorage.removeItem('registeredUser');
+          showMessage(
+            ' Registration successful! Please login with your credentials.',
+            'success',
+          );
+        }
+      };
+    </script>
+  </body>
+</html>

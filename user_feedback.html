@@ -1,0 +1,964 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>Feedback - AI Phishing Detector</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+      }
+
+      body {
+        background: #0a1628;
+        display: flex;
+        min-height: 100vh;
+        width: 100%;
+      }
+
+      .sidebar {
+        width: 280px;
+        background: linear-gradient(180deg, #0f2040 0%, #0a1628 100%);
+        color: #b0cce0;
+        position: relative;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        border-right: 1px solid #1a3d6b;
+      }
+
+      .sidebar.collapsed {
+        width: 80px;
+      }
+      .sidebar.collapsed .menu-label,
+      .sidebar.collapsed .profile-info {
+        display: none;
+      }
+
+      .profile-section {
+        padding: 25px 20px;
+        text-align: center;
+        border-bottom: 1px solid #1a3d6b;
+      }
+
+      .profile-img {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        border: 3px solid #2ab5c0;
+        margin-bottom: 10px;
+      }
+
+      .profile-info h3 {
+        font-size: 16px;
+        color: #00d4bb;
+      }
+      .profile-info p {
+        font-size: 12px;
+        color: #4a6080;
+      }
+
+      .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 14px 25px;
+        color: #b0cce0;
+        cursor: pointer;
+        transition: 0.3s;
+        margin: 4px 10px;
+        border-radius: 10px;
+      }
+
+      .menu-item i {
+        width: 28px;
+        font-size: 16px;
+        color: #4a6080;
+      }
+      .menu-item:hover {
+        background: rgba(42, 181, 192, 0.1);
+        color: #00e5cc;
+      }
+      .menu-item:hover i {
+        color: #00e5cc;
+      }
+      .menu-item.active {
+        background: rgba(42, 181, 192, 0.15);
+        color: #00d4bb;
+        border-left: 4px solid #2ab5c0;
+      }
+      .menu-item.active i {
+        color: #2ab5c0;
+      }
+
+      .logout-btn {
+        margin: 10px 12px 15px;
+        background: rgba(229, 62, 62, 0.1);
+        color: #fc8181;
+        border: 1px solid rgba(229, 62, 62, 0.3);
+        padding: 11px;
+        border-radius: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: 0.2s;
+      }
+
+      .logout-btn:hover {
+        background: #e53e3e;
+        border-color: #e53e3e;
+        color: white;
+      }
+
+      .main {
+        flex: 1;
+        padding: 25px;
+        overflow-y: auto;
+        min-width: 0;
+      }
+
+      .page-header {
+        margin-bottom: 25px;
+      }
+      .page-header h1 {
+        font-size: 26px;
+        color: #00d4bb;
+        font-weight: 700;
+      }
+      .page-header p {
+        color: #4a6080;
+        font-size: 14px;
+        margin-top: 4px;
+      }
+
+      .feedback-card {
+        background: #0f2040;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+        max-width: 700px;
+        margin-bottom: 20px;
+        border: 1px solid #1a3d6b;
+      }
+
+      .card-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #00d4bb;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #1a3d6b;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .scan-select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #1a3d6b;
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        margin-bottom: 20px;
+        background: #0a1628;
+        color: #b0cce0;
+      }
+
+      .scan-select:focus {
+        outline: none;
+        border-color: #2ab5c0;
+      }
+      .scan-select option {
+        background: #0f2040;
+        color: #b0cce0;
+      }
+
+      .pred-row {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .pred-btn {
+        flex: 1;
+        padding: 14px;
+        border-radius: 12px;
+        border: 2px solid #1a3d6b;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: 0.2s;
+        background: #0a1628;
+        color: #b0cce0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .pred-btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .pred-btn.correct.selected {
+        background: rgba(0, 229, 204, 0.1);
+        border-color: #00e5cc;
+        color: #00e5cc;
+      }
+      .pred-btn.wrong.selected {
+        background: rgba(229, 62, 62, 0.1);
+        border-color: #fc8181;
+        color: #fc8181;
+      }
+      .pred-btn.correct:hover {
+        background: rgba(0, 229, 204, 0.08);
+        border-color: #00e5cc;
+      }
+      .pred-btn.wrong:hover {
+        background: rgba(229, 62, 62, 0.08);
+        border-color: #fc8181;
+      }
+
+      .stars {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 20px;
+        justify-content: center;
+      }
+
+      .star {
+        font-size: 32px;
+        cursor: pointer;
+        transition: 0.15s;
+        color: #1a3d6b;
+        line-height: 1;
+      }
+
+      .star:hover,
+      .star.active {
+        color: #2ab5c0;
+        transform: scale(1.1);
+      }
+
+      .category-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .cat-btn {
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 2px solid #1a3d6b;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        transition: 0.2s;
+        background: #0a1628;
+        color: #b0cce0;
+        text-align: center;
+      }
+
+      .cat-btn:hover {
+        border-color: #2ab5c0;
+        color: #2ab5c0;
+      }
+      .cat-btn.selected {
+        background: rgba(42, 181, 192, 0.1);
+        border-color: #2ab5c0;
+        color: #2ab5c0;
+      }
+
+      .feedback-text {
+        width: 100%;
+        padding: 14px;
+        border: 2px solid #1a3d6b;
+        border-radius: 12px;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        resize: vertical;
+        min-height: 100px;
+        transition: 0.2s;
+        background: #0a1628;
+        color: #b0cce0;
+      }
+
+      .feedback-text::placeholder {
+        color: #4a6080;
+      }
+      .feedback-text:focus {
+        outline: none;
+        border-color: #2ab5c0;
+      }
+
+      .submit-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #2ab5c0, #7b5ea7);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-family: 'Inter', sans-serif;
+      }
+
+      .submit-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 229, 204, 0.2);
+        background: linear-gradient(135deg, #00e5cc, #7b5ea7);
+      }
+      .submit-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #b0cce0;
+        margin-bottom: 10px;
+        display: block;
+      }
+
+      .alert {
+        padding: 14px 18px;
+        border-radius: 12px;
+        font-size: 14px;
+        margin-top: 15px;
+        display: none;
+        border-left: 4px solid;
+      }
+
+      .alert.show {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .alert-success {
+        background: rgba(0, 229, 204, 0.1);
+        color: #00e5cc;
+        border-color: #00e5cc;
+      }
+      .alert-error {
+        background: rgba(229, 62, 62, 0.1);
+        color: #fc8181;
+        border-color: #fc8181;
+      }
+      .alert-info {
+        background: rgba(42, 181, 192, 0.1);
+        color: #2ab5c0;
+        border-color: #2ab5c0;
+      }
+
+      .feedback-item {
+        padding: 15px;
+        background: #0a1628;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        border-left: 4px solid #1a3d6b;
+      }
+
+      .feedback-item.correct {
+        border-color: #00e5cc;
+      }
+      .feedback-item.wrong {
+        border-color: #fc8181;
+      }
+
+      .feedback-item .fi-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      .feedback-item .fi-date {
+        font-size: 11px;
+        color: #4a6080;
+      }
+      .feedback-item .fi-stars {
+        color: #2ab5c0;
+        font-size: 14px;
+      }
+      .feedback-item .fi-text {
+        font-size: 13px;
+        color: #b0cce0;
+      }
+
+      .badge-small {
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .badge-green {
+        background: rgba(0, 229, 204, 0.15);
+        color: #00e5cc;
+      }
+      .badge-red {
+        background: rgba(229, 62, 62, 0.15);
+        color: #fc8181;
+      }
+
+      .toggle-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: rgba(42, 181, 192, 0.1);
+        border: none;
+        color: #2ab5c0;
+        cursor: pointer;
+        padding: 8px 15px;
+        font-size: 12px;
+        font-weight: 600;
+        width: calc(100% - 24px);
+        margin: 0 12px 8px;
+        border-radius: 8px;
+        transition: 0.2s;
+      }
+
+      .toggle-btn:hover {
+        background: rgba(0, 229, 204, 0.15);
+        color: #00e5cc;
+      }
+      .sidebar.collapsed .toggle-btn span {
+        display: none;
+      }
+    </style>
+  </head>
+  <script src="theme.js"></script>
+
+  <body>
+    <div
+      class="sidebar"
+      id="sidebar">
+      <div class="profile-section">
+        <img
+          src="images/u-profile (2).jpg"
+          class="profile-img" />
+        <div class="profile-info">
+          <h3 id="sidebarName">Loading...</h3>
+          <p id="sidebarEmail"></p>
+        </div>
+      </div>
+      <div style="padding: 15px 0; flex: 1; overflow-y: auto">
+        <div
+          class="menu-item"
+          onclick="nav('user_dashboard.html')">
+          <i class="fas fa-home"></i><span class="menu-label">Dashboard</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('email_check.html')">
+          <i class="fas fa-shield-alt"></i
+          ><span class="menu-label">Check Email</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('history.html')">
+          <i class="fas fa-history"></i
+          ><span class="menu-label">My History</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('reports.html')">
+          <i class="fas fa-chart-bar"></i
+          ><span class="menu-label">My Reports</span>
+        </div>
+        <div class="menu-item active">
+          <i class="fas fa-comment-alt"></i
+          ><span class="menu-label">Feedback</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('pattern.html')">
+          <i class="fas fa-exclamation-triangle"></i
+          ><span class="menu-label">Patterns</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('user_profile.html')">
+          <i class="fas fa-user"></i><span class="menu-label">Profile</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('user_settings.html')">
+          <i class="fas fa-cog"></i><span class="menu-label">Settings</span>
+        </div>
+      </div>
+      <button
+        class="logout-btn"
+        onclick="handleLogout()">
+        <img
+          src="images/rename (2).png"
+          alt="logout"
+          style="width: 25px; height: 25px" />
+        <span class="menu-label">Logout</span>
+      </button>
+    </div>
+
+    <div class="main">
+      <div class="page-header">
+        <h1>Give Feedback</h1>
+        <p>Help us improve the AI model by rating scan results</p>
+      </div>
+
+      <div class="feedback-card">
+        <div class="card-title">
+          <img
+            src="images/feedback (1).png"
+            alt="feedback"
+            style="width: 25px; height: 25px" />
+          Rate a Scan Result
+        </div>
+
+        <label class="label">Select a scan to rate:</label>
+        <select
+          class="scan-select"
+          id="scanSelect">
+          <option value="">-- Loading your recent scans... --</option>
+        </select>
+
+        <label class="label">Was the AI prediction correct?</label>
+        <div class="pred-row">
+          <button
+            class="pred-btn correct"
+            id="btnCorrect"
+            onclick="selectPred(true)">
+            <img
+              src="images/yes.png"
+              alt="yes"
+              style="width: 25px; height: 25px" />
+            Yes, it was correct
+          </button>
+          <button
+            class="pred-btn wrong"
+            id="btnWrong"
+            onclick="selectPred(false)">
+            <img
+              src="images/no.png"
+              alt="no"
+              style="width: 25px; height: 25px" />
+            No, it was wrong
+          </button>
+        </div>
+
+        <label class="label">Overall rating:</label>
+        <div
+          class="stars"
+          id="starRow">
+          <span
+            class="star"
+            onclick="setRating(1)"
+            onmouseover="hoverRating(1)"
+            onmouseout="resetHover()"
+            >★</span
+          >
+          <span
+            class="star"
+            onclick="setRating(2)"
+            onmouseover="hoverRating(2)"
+            onmouseout="resetHover()"
+            >★</span
+          >
+          <span
+            class="star"
+            onclick="setRating(3)"
+            onmouseover="hoverRating(3)"
+            onmouseout="resetHover()"
+            >★</span
+          >
+          <span
+            class="star"
+            onclick="setRating(4)"
+            onmouseover="hoverRating(4)"
+            onmouseout="resetHover()"
+            >★</span
+          >
+          <span
+            class="star"
+            onclick="setRating(5)"
+            onmouseover="hoverRating(5)"
+            onmouseout="resetHover()"
+            >★</span
+          >
+        </div>
+
+        <label class="label">Category:</label>
+        <div class="category-grid">
+          <div
+            class="cat-btn"
+            onclick="selectCat(this, 'accuracy')">
+            Accuracy
+          </div>
+          <div
+            class="cat-btn"
+            onclick="selectCat(this, 'false_positive')">
+            False Positive
+          </div>
+          <div
+            class="cat-btn"
+            onclick="selectCat(this, 'false_negative')">
+            False Negative
+          </div>
+          <div
+            class="cat-btn"
+            onclick="selectCat(this, 'speed')">
+            Speed
+          </div>
+          <div
+            class="cat-btn"
+            onclick="selectCat(this, 'ui')">
+            UI/UX
+          </div>
+          <div
+            class="cat-btn"
+            onclick="selectCat(this, 'general')">
+            General
+          </div>
+        </div>
+
+        <label class="label">Additional comments (optional):</label>
+        <textarea
+          class="feedback-text"
+          id="feedbackText"
+          placeholder="Tell us more about your experience..."></textarea>
+
+        <button
+          class="submit-btn"
+          onclick="submitFeedback()"
+          id="submitBtn">
+          <img
+            src="images/submit-f (2).png"
+            alt="submit"
+            style="width: 25px; height: 25px" />
+          Submit Feedback
+        </button>
+
+        <div
+          id="formAlert"
+          class="alert"></div>
+      </div>
+
+      <div class="feedback-card">
+        <div class="card-title">
+          <img
+            src="images/submit-f (1).png"
+            alt="past"
+            style="width: 25px; height: 25px" />
+          Your Past Feedback
+        </div>
+        <div id="pastFeedback">
+          <p
+            style="
+              color: #4a6080;
+              font-size: 13px;
+              text-align: center;
+              padding: 20px;
+            ">
+            Loading...
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+      const API_BASE = 'http://localhost:8000';
+      let selectedRating = 0;
+      let selectedCorrect = null;
+      let selectedCategory = 'general';
+      let recentScans = [];
+
+      function nav(url) {
+        window.location.href = url;
+      }
+      function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('collapsed');
+      }
+      function handleLogout() {
+        localStorage.removeItem('user');
+        window.location.href = 'user_login.html';
+      }
+
+      function getUser() {
+        try {
+          const userStr = localStorage.getItem('user');
+          if (!userStr) return null;
+          return JSON.parse(userStr);
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function isTokenExpired(token) {
+        if (!token) return true;
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          return Date.now() > payload.exp * 1000;
+        } catch (e) {
+          return true;
+        }
+      }
+
+      function hoverRating(n) {
+        document.querySelectorAll('.star').forEach((s, i) => {
+          s.style.color = i < n ? '#2ab5c0' : '#1a3d6b';
+        });
+      }
+
+      function resetHover() {
+        document.querySelectorAll('.star').forEach((s, i) => {
+          s.style.color = i < selectedRating ? '#2ab5c0' : '#1a3d6b';
+          s.classList.toggle('active', i < selectedRating);
+        });
+      }
+
+      function setRating(n) {
+        selectedRating = n;
+        resetHover();
+      }
+
+      function selectPred(correct) {
+        selectedCorrect = correct;
+        document
+          .getElementById('btnCorrect')
+          .classList.toggle('selected', correct);
+        document
+          .getElementById('btnWrong')
+          .classList.toggle('selected', !correct);
+      }
+
+      function selectCat(el, cat) {
+        document
+          .querySelectorAll('.cat-btn')
+          .forEach((b) => b.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedCategory = cat;
+      }
+
+      async function loadScans() {
+        const user = getUser();
+        if (!user || !user.access_token || isTokenExpired(user.access_token)) {
+          localStorage.removeItem('user');
+          window.location.href = 'user_login.html';
+          return;
+        }
+        try {
+          const res = await fetch(
+            `${API_BASE}/api/user/${user.user_id}/scans?limit=20`,
+            {
+              headers: { Authorization: `Bearer ${user.access_token}` },
+            },
+          );
+          if (!res.ok) {
+            if (res.status === 401) {
+              localStorage.removeItem('user');
+              window.location.href = 'user_login.html';
+              return;
+            }
+            throw new Error(`HTTP ${res.status}`);
+          }
+          const data = await res.json();
+          recentScans = data.scans || [];
+          const sel = document.getElementById('scanSelect');
+          if (recentScans.length === 0) {
+            sel.innerHTML =
+              '<option value="">No scans yet — analyze an email first</option>';
+            return;
+          }
+          sel.innerHTML =
+            '<option value="">-- Select a scan --</option>' +
+            recentScans
+              .map((s) => {
+                const preview = (s.original_text || '').substring(0, 50);
+                const result =
+                  s.prediction_result === 'phishing'
+                    ? '⚠️ Phishing'
+                    : '✅ Safe';
+                const date = s.scan_timestamp
+                  ? new Date(s.scan_timestamp).toLocaleDateString()
+                  : '';
+                return `<option value="${s.scan_id}">${result} — ${date} — ${preview}...</option>`;
+              })
+              .join('');
+        } catch (e) {
+          document.getElementById('scanSelect').innerHTML =
+            '<option value="">Error loading scans</option>';
+        }
+      }
+
+      async function submitFeedback() {
+        const user = getUser();
+        if (!user || !user.access_token || isTokenExpired(user.access_token)) {
+          localStorage.removeItem('user');
+          alert('Session expired. Please login again.');
+          window.location.href = 'user_login.html';
+          return;
+        }
+        const scanId = document.getElementById('scanSelect').value;
+        const text = document.getElementById('feedbackText').value.trim();
+        const btn = document.getElementById('submitBtn');
+
+        if (!scanId) {
+          showAlert('formAlert', 'Please select a scan', 'error');
+          return;
+        }
+        if (selectedCorrect === null) {
+          showAlert(
+            'formAlert',
+            'Please rate if the prediction was correct or wrong',
+            'error',
+          );
+          return;
+        }
+        if (selectedRating === 0) {
+          showAlert('formAlert', 'Please give a star rating', 'error');
+          return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = 'Submitting...';
+
+        const feedbackData = {
+          user_id: user.user_id,
+          scan_id: parseInt(scanId),
+          correct_prediction: selectedCorrect,
+          rating: selectedRating,
+          feedback_text: text || null,
+          category: selectedCategory,
+        };
+
+        try {
+          const res = await fetch(`${API_BASE}/api/feedback`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${user.access_token}`,
+            },
+            body: JSON.stringify(feedbackData),
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showAlert(
+              'formAlert',
+              'Thank you! Feedback submitted successfully.',
+              'success',
+            );
+            document.getElementById('scanSelect').value = '';
+            document.getElementById('feedbackText').value = '';
+            selectedRating = 0;
+            selectedCorrect = null;
+            selectedCategory = 'general';
+            resetHover();
+            document
+              .querySelectorAll('.pred-btn')
+              .forEach((b) => b.classList.remove('selected'));
+            document
+              .querySelectorAll('.cat-btn')
+              .forEach((b) => b.classList.remove('selected'));
+            loadPastFeedback();
+          } else {
+            showAlert(
+              'formAlert',
+              data.detail || 'Submission failed. Try again.',
+              'error',
+            );
+          }
+        } catch (e) {
+          showAlert(
+            'formAlert',
+            'Cannot connect to backend. Make sure server is running.',
+            'error',
+          );
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML =
+            '<img src="images/submit-f (2).png" alt="submit" style="width:20px;height:20px;"> Submit Feedback';
+        }
+      }
+
+      async function loadPastFeedback() {
+        const user = getUser();
+        if (!user) return;
+        const log = JSON.parse(
+          localStorage.getItem(`feedback_${user.user_id}`) || '[]',
+        );
+        const el = document.getElementById('pastFeedback');
+        if (log.length === 0) {
+          el.innerHTML =
+            '<p style="color:#4a6080;font-size:13px;text-align:center;padding:20px">No feedback submitted yet</p>';
+          return;
+        }
+        el.innerHTML = log
+          .map((f) => {
+            const stars =
+              '★'.repeat(f.rating || 0) + '☆'.repeat(5 - (f.rating || 0));
+            const date = f.time ? new Date(f.time).toLocaleString() : '-';
+            const cls = f.correct ? 'correct' : 'wrong';
+            const badge = f.correct
+              ? '<span class="badge-small badge-green">✓ Correct</span>'
+              : '<span class="badge-small badge-red">✗ Wrong</span>';
+            return `
+                <div class="feedback-item ${cls}">
+                    <div class="fi-header">
+                        <span>${badge} — Scan #${f.scanId}</span>
+                        <span class="fi-date">${date}</span>
+                    </div>
+                    <div class="fi-stars">${stars}</div>
+                    <div class="fi-text" style="margin-top:6px">Category: ${f.category || 'general'}</div>
+                    ${f.text ? `<div class="fi-text">"${escapeHtmlFeedback(f.text)}"</div>` : ''}
+                </div>`;
+          })
+          .join('');
+      }
+
+      function escapeHtmlFeedback(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      function showAlert(id, msg, type) {
+        const el = document.getElementById(id);
+        el.innerHTML = msg;
+        el.className = `alert alert-${type} show`;
+        setTimeout(() => el.classList.remove('show'), 5000);
+      }
+
+      window.onload = async function () {
+        const user = getUser();
+        if (!user || !user.access_token || isTokenExpired(user.access_token)) {
+          localStorage.removeItem('user');
+          window.location.href = 'user_login.html';
+          return;
+        }
+        document.getElementById('sidebarName').textContent =
+          user.username || 'User';
+        document.getElementById('sidebarEmail').textContent = user.email || '';
+        await loadScans();
+        loadPastFeedback();
+      };
+    </script>
+  </body>
+</html>

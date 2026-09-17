@@ -1,0 +1,1179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>Notifications Admin Panel</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet" />
+    <style>
+      :root {
+        --bg-main: #0a1628;
+        --bg-card: #0f2040;
+        --bg-border: #1a3d6b;
+        --accent-teal: #2ab5c0;
+        --accent-teal-hover: #00e5cc;
+        --accent-purple: #7b5ea7;
+        --text-body: #b0cce0;
+        --text-heading: #00d4bb;
+        --text-white: #e8f4ff;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+      }
+
+      body {
+        background: var(--bg-main);
+        display: flex;
+        min-height: 100vh;
+        width: 100%;
+        color: var(--text-body);
+      }
+
+      .sidebar {
+        width: 240px;
+        background: linear-gradient(180deg, #071020 0%, #0a1e3d 100%);
+        color: var(--text-white);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        min-height: 100vh;
+        transition: width 0.3s;
+        overflow: hidden;
+        border-right: 1px solid var(--bg-border);
+      }
+      .sidebar.collapsed {
+        width: 60px;
+      }
+      .sidebar.collapsed .brand-text,
+      .sidebar.collapsed .admin-name,
+      .sidebar.collapsed .role-badge,
+      .sidebar.collapsed .nav-label,
+      .sidebar.collapsed .logout-text {
+        display: none;
+      }
+      .sidebar.collapsed .nav-item {
+        justify-content: center;
+        padding: 12px 0;
+      }
+      .sidebar.collapsed .sidebar-profile {
+        padding: 10px 0;
+      }
+
+      .sidebar-brand {
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--bg-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .brand-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .brand-icon {
+        width: 34px;
+        height: 34px;
+        background: rgba(42, 181, 192, 0.2);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border: 1px solid rgba(42, 181, 192, 0.3);
+      }
+      .brand-text h2 {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-white);
+      }
+      .brand-text p {
+        font-size: 10px;
+        opacity: 0.6;
+        margin-top: 1px;
+        color: var(--text-body);
+      }
+
+      .toggle-sidebar-btn {
+        background: rgba(42, 181, 192, 0.15);
+        border: none;
+        color: var(--text-white);
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: 0.2s;
+      }
+      .toggle-sidebar-btn:hover {
+        background: rgba(0, 229, 204, 0.3);
+      }
+
+      .sidebar-profile {
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--bg-border);
+        text-align: center;
+      }
+      .admin-avatar {
+        width: 56px;
+        height: 56px;
+        background: rgba(42, 181, 192, 0.15);
+        border-radius: 50%;
+        border: 2px solid var(--accent-teal);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin: 0 auto 8px;
+        overflow: hidden;
+      }
+      .admin-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+      }
+      .admin-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-white);
+      }
+      .role-badge {
+        display: inline-block;
+        background: linear-gradient(
+          135deg,
+          var(--accent-teal),
+          var(--accent-teal-hover)
+        );
+        color: var(--bg-main);
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 20px;
+        margin-top: 4px;
+      }
+      .notif-bell-btn {
+        background: rgba(42, 181, 192, 0.15);
+        border: none;
+        color: var(--text-white);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        transition: 0.2s;
+        position: relative;
+        margin: 6px auto 0;
+      }
+      .notif-bell-btn:hover {
+        background: rgba(0, 229, 204, 0.3);
+      }
+      .notif-bell-badge {
+        position: absolute;
+        top: -3px;
+        right: -3px;
+        background: var(--accent-purple);
+        color: white;
+        font-size: 8px;
+        font-weight: 700;
+        min-width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 2px;
+      }
+
+      .sidebar-nav {
+        flex: 1;
+        padding: 10px 8px;
+        overflow-y: auto;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+        color: var(--text-body);
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 2px;
+        white-space: nowrap;
+      }
+      .nav-item i {
+        font-size: 15px;
+        width: 18px;
+        flex-shrink: 0;
+      }
+      .nav-item:hover {
+        background: rgba(42, 181, 192, 0.15);
+        color: var(--accent-teal-hover);
+      }
+      .nav-item.active {
+        background: rgba(42, 181, 192, 0.2);
+        color: var(--accent-teal-hover);
+        border-left: 3px solid var(--accent-teal);
+        padding-left: 9px;
+      }
+
+      .sidebar-footer {
+        padding: 10px 10px 16px;
+      }
+      .logout-btn {
+        width: 100%;
+        padding: 10px;
+        background: rgba(42, 181, 192, 0.1);
+        color: var(--text-white);
+        border: 1px solid var(--bg-border);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: 0.2s;
+        white-space: nowrap;
+      }
+      .logout-btn:hover {
+        background: #c0392b;
+        border-color: #c0392b;
+      }
+
+      .main-content {
+        flex: 1;
+        min-width: 0;
+        overflow-y: auto;
+        padding: 26px;
+        background: var(--bg-main);
+      }
+
+      .page-header {
+        margin-bottom: 22px;
+      }
+      .page-header h1 {
+        font-size: 24px;
+        color: var(--text-heading);
+        font-weight: 700;
+      }
+      .page-header p {
+        color: var(--text-body);
+        font-size: 13px;
+        margin-top: 3px;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+      .stat-card {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 16px 18px;
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--bg-border);
+        transition: 0.2s;
+      }
+      .stat-card:hover {
+        border-color: var(--accent-teal);
+      }
+      .stat-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .stat-icon.purple {
+        background: rgba(123, 94, 167, 0.3);
+      }
+      .stat-icon.blue {
+        background: rgba(42, 181, 192, 0.2);
+      }
+      .stat-icon.orange {
+        background: rgba(231, 76, 60, 0.2);
+      }
+      .stat-icon.green {
+        background: rgba(0, 229, 204, 0.15);
+      }
+      .stat-info h3 {
+        color: var(--text-body);
+        font-size: 12px;
+        margin-bottom: 2px;
+      }
+      .stat-info p {
+        color: var(--text-heading);
+        font-size: 1.3rem;
+        font-weight: 700;
+      }
+
+      .controls {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 14px 18px;
+        margin-bottom: 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--bg-border);
+      }
+      .filter-btns {
+        display: flex;
+        gap: 7px;
+        flex-wrap: wrap;
+      }
+      .filter-btn {
+        padding: 6px 13px;
+        border: 1px solid var(--bg-border);
+        border-radius: 20px;
+        background: transparent;
+        color: var(--text-body);
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 500;
+        transition: 0.2s;
+      }
+      .filter-btn.active,
+      .filter-btn:hover {
+        background: var(--accent-teal);
+        color: var(--bg-main);
+        border-color: var(--accent-teal);
+      }
+
+      .action-btns {
+        display: flex;
+        gap: 8px;
+      }
+      .act-btn {
+        padding: 7px 13px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: 0.2s;
+      }
+      .act-btn.green {
+        background: rgba(42, 181, 192, 0.15);
+        color: var(--accent-teal-hover);
+      }
+      .act-btn.green:hover {
+        background: var(--accent-teal);
+        color: var(--bg-main);
+      }
+      .act-btn.red {
+        background: rgba(231, 76, 60, 0.15);
+        color: #ff6b6b;
+      }
+      .act-btn.red:hover {
+        background: #e74c3c;
+        color: white;
+      }
+
+      .notif-list {
+        background: var(--bg-card);
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        border: 1px solid var(--bg-border);
+      }
+      .notif-item {
+        display: flex;
+        gap: 13px;
+        padding: 16px 18px;
+        border-bottom: 1px solid rgba(26, 61, 107, 0.5);
+        transition: 0.2s;
+        position: relative;
+        align-items: flex-start;
+      }
+      .notif-item:last-child {
+        border-bottom: none;
+      }
+      .notif-item:hover {
+        background: rgba(42, 181, 192, 0.05);
+      }
+      .notif-item.unread {
+        background: rgba(42, 181, 192, 0.06);
+      }
+
+      .unread-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--accent-teal);
+        flex-shrink: 0;
+        margin-top: 6px;
+      }
+
+      .notif-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+      }
+      .notif-icon.warning {
+        background: rgba(123, 94, 167, 0.2);
+        color: #b39ddb;
+      }
+      .notif-icon.info {
+        background: rgba(42, 181, 192, 0.15);
+        color: var(--accent-teal);
+      }
+      .notif-icon.success {
+        background: rgba(0, 229, 204, 0.12);
+        color: var(--accent-teal-hover);
+      }
+      .notif-icon.error {
+        background: rgba(231, 76, 60, 0.15);
+        color: #ff6b6b;
+      }
+      .notif-icon.system {
+        background: rgba(123, 94, 167, 0.2);
+        color: var(--accent-purple);
+      }
+      .notif-icon.phishing {
+        background: rgba(231, 76, 60, 0.15);
+        color: #ff6b6b;
+      }
+
+      .notif-body {
+        flex: 1;
+        min-width: 0;
+      }
+      .notif-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 4px;
+        gap: 10px;
+      }
+      .notif-title {
+        font-weight: 600;
+        color: var(--text-white);
+        font-size: 13px;
+      }
+      .notif-time {
+        color: var(--text-body);
+        font-size: 11px;
+        flex-shrink: 0;
+        opacity: 0.7;
+      }
+      .notif-msg {
+        color: var(--text-body);
+        font-size: 12px;
+        line-height: 1.5;
+        margin-bottom: 5px;
+      }
+      .notif-meta {
+        font-size: 11px;
+        color: var(--text-body);
+        opacity: 0.6;
+      }
+
+      .notif-actions {
+        display: flex;
+        gap: 3px;
+        align-items: center;
+        flex-shrink: 0;
+      }
+      .na-btn {
+        width: 26px;
+        height: 26px;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--text-body);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        transition: 0.2s;
+      }
+      .na-btn:hover {
+        background: rgba(42, 181, 192, 0.15);
+        color: var(--accent-teal-hover);
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-body);
+      }
+      .empty-state i {
+        font-size: 48px;
+        margin-bottom: 15px;
+        opacity: 0.2;
+        display: block;
+      }
+
+      .loading-state {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-body);
+      }
+      .spinner {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(42, 181, 192, 0.2);
+        border-top: 3px solid var(--accent-teal);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .refresh-info {
+        font-size: 11px;
+        color: var(--text-body);
+        opacity: 0.5;
+        text-align: center;
+        padding: 10px;
+        border-top: 1px solid var(--bg-border);
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal.active {
+        display: flex;
+      }
+      .modal-box {
+        background: var(--bg-card);
+        padding: 28px;
+        border-radius: 14px;
+        max-width: 360px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        border: 1px solid var(--bg-border);
+      }
+      .modal-box i {
+        font-size: 2.8rem;
+        color: #ff6b6b;
+        margin-bottom: 10px;
+        display: block;
+      }
+      .modal-box h3 {
+        margin-bottom: 6px;
+        color: var(--text-white);
+        font-size: 17px;
+      }
+      .modal-box p {
+        color: var(--text-body);
+        font-size: 13px;
+        margin-bottom: 18px;
+      }
+      .modal-btns {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+      .modal-btns button {
+        padding: 9px 22px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .btn-confirm {
+        background: #e74c3c;
+        color: white;
+      }
+      .btn-cancel {
+        background: rgba(42, 181, 192, 0.15);
+        color: var(--text-body);
+        border: 1px solid var(--bg-border);
+      }
+    </style>
+  </head>
+  <script src="theme.js"></script>
+
+  <body>
+    <div
+      class="modal"
+      id="deleteModal">
+      <div class="modal-box">
+        <i class="fas fa-trash-alt"></i>
+        <h3>Delete All Notifications?</h3>
+        <p>This will clear all notifications. Cannot be undone.</p>
+        <div class="modal-btns">
+          <button
+            class="btn-confirm"
+            onclick="confirmDeleteAll()">
+            Delete All
+          </button>
+          <button
+            class="btn-cancel"
+            onclick="
+              document.getElementById('deleteModal').classList.remove('active')
+            ">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="sidebar"
+      id="adminSidebar">
+      <div class="sidebar-brand">
+        <div class="brand-left">
+          <div class="brand-icon">
+            <img
+              src="images/shield.png"
+              alt="shield"
+              style="width: 22px; height: 22px" />
+          </div>
+          <div class="brand-text">
+            <h2>Admin Panel</h2>
+            <p>Phishing Detector</p>
+          </div>
+        </div>
+        <button
+          class="toggle-sidebar-btn"
+          onclick="toggleAdminSidebar()">
+          <img
+            src="images/toggle (1).png"
+            alt="menu"
+            style="width: 18px; height: 18px" />
+        </button>
+      </div>
+      <div class="sidebar-profile">
+        <div
+          class="admin-avatar"
+          id="sidebarAvatarDiv">
+          <img
+            src="images/software-engineer.png"
+            alt="admin"
+            id="sidebarAvatarIcon"
+            style="width: 56px; height: 56px; border-radius: 50%" />
+        </div>
+        <div
+          class="admin-name"
+          id="adminName">
+          admin
+        </div>
+        <div class="role-badge">ADMIN</div>
+        <button
+          class="notif-bell-btn"
+          onclick="nav('admin_notifications.html')"
+          title="Notifications"
+          style="background: rgba(42, 181, 192, 0.3)">
+          <img
+            src="images/notification-bell (1).png"
+            alt="notifications"
+            style="width: 18px; height: 18px" />
+        </button>
+      </div>
+      <div class="sidebar-nav">
+        <div
+          class="nav-item"
+          onclick="nav('admin_dashboard.html')">
+          <i class="fas fa-th-large"></i
+          ><span class="nav-label"> Dashboard</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('manage_users.html')">
+          <i class="fas fa-users"></i
+          ><span class="nav-label"> Manage Users</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('email_scans.html')">
+          <i class="fas fa-envelope-open-text"></i
+          ><span class="nav-label"> Email Scans</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('admin_analytics.html')">
+          <i class="fas fa-chart-line"></i
+          ><span class="nav-label"> Analytics</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('admin_feedback.html')">
+          <i class="fas fa-comments"></i
+          ><span class="nav-label"> Feedback</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('admin_model.html')">
+          <i class="fas fa-brain"></i><span class="nav-label"> ML Model</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('admin_profile.html')">
+          <i class="fas fa-user-circle"></i
+          ><span class="nav-label"> My Profile</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('admin_settings.html')">
+          <i class="fas fa-cog"></i><span class="nav-label"> Settings</span>
+        </div>
+      </div>
+      <div class="sidebar-footer">
+        <button
+          class="logout-btn"
+          onclick="adminLogout()">
+          <img
+            src="images/rename (1).png"
+            alt="logout"
+            style="width: 25px; height: 25px" />
+          <span class="logout-text"> Logout</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="page-header">
+        <h1>Notifications</h1>
+        <p>Real-time system alerts from your backend</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon purple">
+            <img
+              src="images/notification-bell.png"
+              alt="notif"
+              style="width: 18px; height: 18px" />
+          </div>
+          <div class="stat-info">
+            <h3>Total</h3>
+            <p id="statTotal">-</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">
+            <img
+              src="images/envelope.png"
+              alt="unread"
+              style="width: 18px; height: 18px" />
+          </div>
+          <div class="stat-info">
+            <h3>Unread</h3>
+            <p id="statUnread">-</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange">
+            <img
+              src="images/phishing (1).png"
+              alt="phishing"
+              style="width: 18px; height: 18px" />
+          </div>
+          <div class="stat-info">
+            <h3>Phishing</h3>
+            <p id="statPhishing">-</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">
+            <img
+              src="images/one-user.png"
+              alt="users"
+              style="width: 18px; height: 18px" />
+          </div>
+          <div class="stat-info">
+            <h3>New Users</h3>
+            <p id="statUsers">-</p>
+          </div>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="filter-btns">
+          <button
+            class="filter-btn active"
+            onclick="setFilter('all', this)">
+            All
+          </button>
+          <button
+            class="filter-btn"
+            onclick="setFilter('unread', this)">
+            Unread
+          </button>
+          <button
+            class="filter-btn"
+            onclick="setFilter('phishing', this)">
+            Phishing Alerts
+          </button>
+          <button
+            class="filter-btn"
+            onclick="setFilter('user', this)">
+            User Activity
+          </button>
+          <button
+            class="filter-btn"
+            onclick="setFilter('system', this)">
+            System
+          </button>
+          <button
+            class="filter-btn"
+            onclick="setFilter('feedback', this)">
+            Feedback
+          </button>
+        </div>
+        <div class="action-btns">
+          <button
+            class="act-btn green"
+            onclick="markAllRead()">
+            <i class="fas fa-check-double"></i> Mark All Read
+          </button>
+          <button
+            class="act-btn red"
+            onclick="
+              document.getElementById('deleteModal').classList.add('active')
+            ">
+            <i class="fas fa-trash"></i> Clear All
+          </button>
+        </div>
+      </div>
+      <div
+        class="notif-list"
+        id="notifList">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p style="margin-top: 10px; font-size: 13px">
+            Loading real-time notifications...
+          </p>
+        </div>
+      </div>
+      <div
+        class="refresh-info"
+        id="refreshInfo"></div>
+    </div>
+
+    <script>
+      const API = 'http://localhost:8000';
+      let notifications = [];
+      let readIds = new Set(
+        JSON.parse(localStorage.getItem('adminNotifRead') || '[]'),
+      );
+      let currentFilter = 'all';
+      let adminToken = '';
+
+      function nav(url) {
+        window.location.href = url;
+      }
+      function adminLogout() {
+        localStorage.removeItem('admin');
+        localStorage.removeItem('adminLoggedIn');
+        window.location.href = 'admin_login.html';
+      }
+      function toggleAdminSidebar() {
+        const sb = document.getElementById('adminSidebar');
+        sb.classList.toggle('collapsed');
+        localStorage.setItem(
+          'adminSidebarCollapsed',
+          sb.classList.contains('collapsed') ? '1' : '0',
+        );
+      }
+
+      async function loadNotifications() {
+        try {
+          const headers = { Authorization: `Bearer ${adminToken}` };
+          const [statsRes, scansRes, usersRes, feedbackRes] = await Promise.all(
+            [
+              fetch(`${API}/api/admin/stats`, { headers }),
+              fetch(`${API}/api/admin/scans?limit=20`, { headers }),
+              fetch(`${API}/api/admin/users?limit=10`, { headers }),
+              fetch(`${API}/api/admin/feedback?limit=10`, { headers }),
+            ],
+          );
+          const statsData = await statsRes.json();
+          const scansData = await scansRes.json();
+          const usersData = await usersRes.json();
+          const feedbackData = await feedbackRes.json();
+          const stats = statsData.stats || {};
+          const scans = scansData.scans || [];
+          const users = usersData.users || [];
+          const feedback = feedbackData.feedback || [];
+
+          notifications = [];
+          let idCounter = 1;
+
+          const highRisk = scans.filter(
+            (s) =>
+              s.risk_level === 'high' && s.prediction_result === 'phishing',
+          );
+          if (highRisk.length > 0) {
+            notifications.push({
+              id: idCounter++,
+              type: 'phishing',
+              category: 'phishing',
+              title: `${highRisk.length} High-Risk Phishing Scan${highRisk.length > 1 ? 's' : ''} Detected`,
+              msg: `${highRisk.length} scan${highRisk.length > 1 ? 's' : ''} flagged as high-risk phishing. Latest: "${(highRisk[0].original_text || '').substring(0, 60)}..."`,
+              meta: `Security Alert • ${timeAgo(highRisk[0].scan_timestamp)}`,
+              time: timeAgo(highRisk[0].scan_timestamp),
+              ts: highRisk[0].scan_timestamp,
+            });
+          }
+          highRisk.slice(0, 3).forEach((scan) => {
+            notifications.push({
+              id: idCounter++,
+              type: 'phishing',
+              category: 'phishing',
+              title: `Phishing Detected (${parseFloat(scan.confidence_score || 0).toFixed(1)}% confidence)`,
+              msg: `User ${scan.user_name || '#' + scan.user_id}: "${(scan.original_text || '').substring(0, 80)}..."`,
+              meta: `Risk: HIGH • Scan #${scan.scan_id}`,
+              time: timeAgo(scan.scan_timestamp),
+              ts: scan.scan_timestamp,
+            });
+          });
+          if (stats.phishing_detected > 0)
+            notifications.push({
+              id: idCounter++,
+              type: 'warning',
+              category: 'system',
+              title: `${stats.phishing_detected} Total Phishing Emails Detected`,
+              msg: `Out of ${stats.total_scans} total scans, ${stats.phishing_detected} were phishing.`,
+              meta: `System Stats`,
+              time: 'Now',
+              ts: new Date().toISOString(),
+            });
+          if (stats.today_scans > 0)
+            notifications.push({
+              id: idCounter++,
+              type: 'info',
+              category: 'system',
+              title: `${stats.today_scans} Email${stats.today_scans > 1 ? 's' : ''} Scanned Today`,
+              msg: `${stats.active_users_today} active user${stats.active_users_today !== 1 ? 's' : ''} performed scans today.`,
+              meta: `Daily Activity`,
+              time: 'Today',
+              ts: new Date().toISOString(),
+            });
+          users.slice(0, 3).forEach((user) => {
+            notifications.push({
+              id: idCounter++,
+              type: 'success',
+              category: 'user',
+              title: `New User: ${user.user_name}`,
+              msg: `${user.email} joined. Total scans: ${user.total_scans || 0}.`,
+              meta: `User Registration • ${timeAgo(user.created_at)}`,
+              time: timeAgo(user.created_at),
+              ts: user.created_at,
+            });
+          });
+          if (stats.total_users > 0)
+            notifications.push({
+              id: idCounter++,
+              type: 'info',
+              category: 'user',
+              title: `${stats.total_users} Registered Users`,
+              msg: `Platform has ${stats.total_users} registered user${stats.total_users !== 1 ? 's' : ''}. ${stats.active_users_today} active today.`,
+              meta: `User Stats`,
+              time: 'Now',
+              ts: new Date().toISOString(),
+            });
+          feedback.slice(0, 3).forEach((f) => {
+            const stars = '★'.repeat(f.rating || 0);
+            const correct = f.correct_prediction
+              ? 'Correct prediction'
+              : 'Wrong prediction';
+            notifications.push({
+              id: idCounter++,
+              type: f.correct_prediction ? 'success' : 'warning',
+              category: 'feedback',
+              title: `Feedback from ${f.user_name || 'User'} — ${stars} (${f.rating}/5)`,
+              msg: f.feedback_text
+                ? `"${f.feedback_text.substring(0, 100)}" — ${correct}`
+                : `Scan rated ${f.rating}/5 stars. ${correct}.`,
+              meta: `Feedback • ${timeAgo(f.created_at)}`,
+              time: timeAgo(f.created_at),
+              ts: f.created_at,
+            });
+          });
+          try {
+            const modelRes = await fetch(`${API}/api/model/info`, { headers });
+            const modelData = await modelRes.json();
+            if (modelData.status === 'loaded')
+              notifications.push({
+                id: idCounter++,
+                type: 'success',
+                category: 'system',
+                title: 'ML Model Active',
+                msg: `${modelData.model_type || 'RandomForestClassifier'} loaded with ${(modelData.features || 3000).toLocaleString()} features. Accuracy: 92.29%.`,
+                meta: 'System • ML Status',
+                time: 'Active',
+                ts: new Date().toISOString(),
+              });
+          } catch (e) {}
+
+          notifications.sort((a, b) => new Date(b.ts) - new Date(a.ts));
+          document.getElementById('refreshInfo').textContent =
+            `Last refreshed: ${new Date().toLocaleTimeString()}`;
+          renderNotifs();
+        } catch (e) {
+          document.getElementById('notifList').innerHTML =
+            `<div class="empty-state"><i class="fas fa-exclamation-circle" style="color:#ff6b6b;opacity:1"></i><p style="color:#ff6b6b">Cannot connect to backend</p><p style="font-size:12px;margin-top:8px">Make sure <strong>python main.py</strong> is running</p></div>`;
+        }
+      }
+
+      function timeAgo(ts) {
+        if (!ts) return '-';
+        const diff = Math.floor((Date.now() - new Date(ts)) / 1000);
+        if (diff < 60) return `${diff}s ago`;
+        if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+        return `${Math.floor(diff / 86400)}d ago`;
+      }
+      function iconForType(type) {
+        const m = {
+          phishing: 'fa-fish',
+          warning: 'fa-exclamation-triangle',
+          info: 'fa-info-circle',
+          success: 'fa-check-circle',
+          error: 'fa-times-circle',
+          system: 'fa-cog',
+          feedback: 'fa-star',
+        };
+        return m[type] || 'fa-bell';
+      }
+
+      function renderNotifs() {
+        let list = [...notifications];
+        if (currentFilter === 'unread')
+          list = list.filter((n) => !readIds.has(n.id));
+        else if (currentFilter !== 'all')
+          list = list.filter((n) => n.category === currentFilter);
+
+        document.getElementById('statTotal').textContent = notifications.length;
+        document.getElementById('statUnread').textContent =
+          notifications.filter((n) => !readIds.has(n.id)).length;
+        document.getElementById('statPhishing').textContent =
+          notifications.filter((n) => n.category === 'phishing').length;
+        document.getElementById('statUsers').textContent = notifications.filter(
+          (n) => n.category === 'user',
+        ).length;
+
+        if (list.length === 0) {
+          document.getElementById('notifList').innerHTML =
+            `<div class="empty-state"><i class="fas fa-bell-slash"></i><p>No notifications for this filter</p></div>`;
+          return;
+        }
+
+        document.getElementById('notifList').innerHTML = list
+          .map((n) => {
+            const isUnread = !readIds.has(n.id);
+            return `<div class="notif-item${isUnread ? ' unread' : ''}" id="ni-${n.id}">
+                    ${isUnread ? '<div class="unread-dot"></div>' : ''}
+                    <div class="notif-icon ${n.type}"><i class="fas ${iconForType(n.type)}"></i></div>
+                    <div class="notif-body">
+                        <div class="notif-head"><span class="notif-title">${n.title}</span><span class="notif-time">${n.time}</span></div>
+                        <div class="notif-msg">${n.msg}</div>
+                        <div class="notif-meta">${n.meta}</div>
+                    </div>
+                    <div class="notif-actions">
+                        <button class="na-btn" onclick="markRead(${n.id})" title="Mark read"><i class="fas fa-check"></i></button>
+                        <button class="na-btn" onclick="deleteNotif(${n.id})" title="Dismiss"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>`;
+          })
+          .join('');
+      }
+
+      function saveReadIds() {
+        localStorage.setItem('adminNotifRead', JSON.stringify([...readIds]));
+      }
+      function markRead(id) {
+        readIds.add(id);
+        saveReadIds();
+        renderNotifs();
+      }
+      function deleteNotif(id) {
+        notifications = notifications.filter((n) => n.id !== id);
+        readIds.delete(id);
+        saveReadIds();
+        renderNotifs();
+      }
+      function markAllRead() {
+        notifications.forEach((n) => readIds.add(n.id));
+        saveReadIds();
+        renderNotifs();
+      }
+      function confirmDeleteAll() {
+        notifications = [];
+        readIds.clear();
+        saveReadIds();
+        renderNotifs();
+        document.getElementById('deleteModal').classList.remove('active');
+      }
+      function setFilter(f, btn) {
+        currentFilter = f;
+        document
+          .querySelectorAll('.filter-btn')
+          .forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderNotifs();
+      }
+
+      window.onload = function () {
+        const admin = JSON.parse(localStorage.getItem('admin') || 'null');
+        if (!admin || admin.role !== 'admin') {
+          window.location.href = 'admin_login.html';
+          return;
+        }
+        adminToken = admin.access_token || '';
+        if (document.getElementById('adminName'))
+          document.getElementById('adminName').textContent =
+            admin.username || 'admin';
+        const saved = localStorage.getItem('adminAvatar');
+        const div = document.getElementById('sidebarAvatarDiv');
+        if (saved && div)
+          div.innerHTML = `<img src="${saved}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+        if (localStorage.getItem('adminSidebarCollapsed') === '1')
+          document.getElementById('adminSidebar').classList.add('collapsed');
+        loadNotifications();
+        setInterval(loadNotifications, 60000);
+      };
+    </script>
+  </body>
+</html>

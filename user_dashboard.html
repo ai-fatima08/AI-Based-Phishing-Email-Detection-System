@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard AI Phishing Detector</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg-primary: #0a1628;
+        --bg-secondary: #0f2040;
+        --bg-card: #112244;
+        --border: #1a3d6b;
+        --accent-teal: #2ab5c0;
+        --accent-teal-bright: #00e5cc;
+        --accent-purple: #7b5ea7;
+        --text-body: #b0cce0;
+        --text-heading: #00d4bb;
+        --text-white: #e8f4f8;
+        --gradient: linear-gradient(135deg, #2ab5c0 0%, #7b5ea7 60%, #00e5cc 100%);
+        --sidebar-gradient: linear-gradient(180deg, #0a1f3d 0%, #0d2a50 100%);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+      }
+
+      body {
+        background: var(--bg-primary);
+        color: var(--text-body);
+        display: flex;
+        min-height: 100vh;
+        width: 100%;
+      }
+
+      .sidebar {
+        width: 280px;
+        background: var(--sidebar-gradient);
+        color: var(--text-white);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        min-height: 100vh;
+        position: relative;
+        border-right: 1px solid rgba(42, 181, 192, 0.15);
+      }
+
+      .sidebar.collapsed { width: 80px; }
+
+      .sidebar.collapsed .sidebar-menu span,
+      .sidebar.collapsed .profile-info,
+      .sidebar.collapsed .edit-profile-btn { display: none; }
+
+      .sidebar-wrap { position: relative; display: flex; width: 100%; }
+
+      .toggle-btn {
+        position: absolute;
+        right: -12px;
+        top: 30px;
+        width: 24px;
+        height: 24px;
+        background: var(--accent-teal);
+        border: 2px solid var(--bg-primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #0a1628;
+        font-size: 12px;
+        z-index: 100;
+      }
+
+      .profile-section {
+        padding: 25px 20px;
+        text-align: center;
+        border-bottom: 1px solid rgba(42, 181, 192, 0.15);
+      }
+
+      .profile-img {
+        width: 75px;
+        height: 75px;
+        border-radius: 50%;
+        border: 3px solid rgba(42, 181, 192, 0.50);
+        margin-bottom: 12px;
+        object-fit: cover;
+      }
+
+      .profile-info h3 { font-size: 17px; margin-bottom: 3px; color: var(--text-white); }
+      .profile-info p { font-size: 12px; opacity: 0.8; margin-bottom: 12px; color: var(--text-body); }
+
+      .edit-profile-btn {
+        background: rgba(42, 181, 192, 0.15);
+        color: var(--text-body);
+        border: 1px solid rgba(42, 181, 192, 0.30);
+        padding: 7px 18px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 13px;
+        width: 100%;
+        transition: 0.2s;
+      }
+
+      .edit-profile-btn:hover {
+        background: rgba(42, 181, 192, 0.25);
+        color: var(--accent-teal-bright);
+      }
+
+      .sidebar-menu { padding: 12px 0; flex: 1; overflow-y: auto; }
+
+      .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 13px 20px;
+        color: var(--text-body);
+        cursor: pointer;
+        transition: 0.3s;
+        margin: 3px 8px;
+        border-radius: 10px;
+      }
+
+      .menu-item i { width: 28px; font-size: 16px; }
+      .menu-item span { font-size: 14px; font-weight: 500; }
+
+      .menu-item:hover {
+        background: rgba(42, 181, 192, 0.12);
+        color: var(--accent-teal-bright);
+      }
+
+      .menu-item.active {
+        background: rgba(42, 181, 192, 0.18);
+        color: var(--accent-teal-bright);
+        border-left: 4px solid var(--accent-teal-bright);
+      }
+
+      .logout-btn {
+        margin: 10px 12px 15px;
+        background: rgba(42, 181, 192, 0.10);
+        color: var(--text-body);
+        border: 1px solid rgba(42, 181, 192, 0.25);
+        padding: 11px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: 0.2s;
+      }
+
+      .logout-btn:hover {
+        background: rgba(220,53,69,0.20);
+        border-color: #dc3545;
+        color: #ff6b8a;
+      }
+
+      .main-content {
+        flex: 1;
+        padding: 28px;
+        background: var(--bg-primary);
+        overflow-y: auto;
+        min-width: 0;
+      }
+
+      .main-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 25px;
+      }
+
+      .header-title h1 { font-size: 26px; color: var(--text-heading); font-weight: 700; }
+      .header-title p { color: var(--text-body); font-size: 13px; margin-top: 4px; }
+      .last-updated { font-size: 11px; color: rgba(176,204,224,0.5); margin-top: 3px; }
+
+      .refresh-btn {
+        padding: 8px 16px;
+        background: var(--gradient);
+        color: #0a1628;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        box-shadow: 0 4px 16px rgba(42,181,192,0.25);
+        transition: 0.2s;
+      }
+
+      .refresh-btn:hover {
+        box-shadow: 0 6px 22px rgba(0,229,204,0.35);
+        transform: translateY(-1px);
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin-bottom: 25px;
+      }
+
+      .stat-card {
+        background: var(--bg-secondary);
+        border-radius: 14px;
+        padding: 22px;
+        box-shadow: 0 3px 20px rgba(0,0,0,0.25);
+        border: 1px solid rgba(42, 181, 192, 0.12);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: 0.2s;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 28px rgba(42,181,192,0.18);
+        border-color: rgba(42,181,192,0.28);
+      }
+
+      .stat-info h3 { font-size: 13px; color: var(--text-body); margin-bottom: 6px; }
+
+      .stat-number { font-size: 30px; font-weight: 700; color: var(--text-heading); }
+
+      .stat-icon {
+        width: 55px;
+        height: 55px;
+        background: linear-gradient(135deg, #2ab5c0, #7b5ea7);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 26px;
+      }
+
+      .section-title { font-size: 18px; color: var(--text-heading); margin: 22px 0 16px; font-weight: 600; }
+
+      .action-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .action-card {
+        background: var(--bg-secondary);
+        border-radius: 14px;
+        padding: 22px;
+        box-shadow: 0 3px 20px rgba(0,0,0,0.25);
+        border: 1px solid rgba(42, 181, 192, 0.12);
+        cursor: pointer;
+        transition: 0.2s;
+      }
+
+      .action-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--accent-teal);
+        box-shadow: 0 8px 28px rgba(42,181,192,0.18);
+      }
+
+      .action-icon {
+        width: 55px;
+        height: 55px;
+        background: rgba(42, 181, 192, 0.12);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent-teal-bright);
+        font-size: 26px;
+        margin-bottom: 16px;
+        border: 1px solid rgba(42,181,192,0.18);
+      }
+
+      .action-card h3 { font-size: 17px; color: var(--text-white); margin-bottom: 8px; }
+      .action-card p { color: var(--text-body); font-size: 13px; line-height: 1.6; }
+
+      .activity-list {
+        background: var(--bg-secondary);
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: 0 3px 20px rgba(0,0,0,0.25);
+        border: 1px solid rgba(42, 181, 192, 0.12);
+      }
+
+      .activity-item {
+        display: flex;
+        align-items: center;
+        padding: 13px 0;
+        border-bottom: 1px solid rgba(42,181,192,0.08);
+      }
+
+      .activity-item:last-child { border-bottom: none; }
+
+      .activity-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: rgba(42, 181, 192, 0.12);
+        border: 1px solid rgba(42,181,192,0.18);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent-teal);
+        margin-right: 13px;
+        flex-shrink: 0;
+      }
+
+      .activity-details { flex: 1; }
+      .activity-details h4 { font-size: 13px; color: var(--text-white); margin-bottom: 3px; }
+      .activity-details p { font-size: 12px; color: rgba(176,204,224,0.5); }
+
+      .activity-status {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      .status-safe { background: rgba(74,222,128,0.15); color: #4ade80; }
+      .status-phishing { background: rgba(255,107,138,0.15); color: #ff6b8a; }
+
+      .spinner {
+        border: 3px solid rgba(42,181,192,0.2);
+        border-top: 3px solid var(--accent-teal);
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .empty-state { text-align: center; padding: 35px; color: var(--text-body); opacity: 0.6; }
+      .empty-state i { font-size: 44px; margin-bottom: 12px; opacity: 0.3; }
+
+      .btn-action {
+        padding: 9px 22px;
+        background: var(--gradient);
+        color: #0a1628;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: 700;
+        margin-top: 12px;
+        box-shadow: 0 4px 14px rgba(42,181,192,0.25);
+        transition: 0.2s;
+      }
+
+      .btn-action:hover {
+        box-shadow: 0 6px 20px rgba(0,229,204,0.35);
+        transform: translateY(-1px);
+      }
+    </style>
+  </head>
+  <script src="theme.js"></script>
+
+  <body>
+    <div class="sidebar" id="sidebar">
+      <div class="toggle-btn" onclick="toggleSidebar()">
+        <img src="images/arrow (5).png" alt="menu" style="width: 18px; height: 18px" />
+      </div>
+      <div class="profile-section">
+        <img src="images/u-profile (2).jpg" class="profile-img" id="sidebarAvatar" />
+        <div class="profile-info">
+          <h3 id="sidebarName">Loading...</h3>
+          <p id="sidebarEmail">Loading...</p>
+        </div>
+        <button class="edit-profile-btn" onclick="nav('user_profile.html')">
+          <img src="images/profile.png" alt="menu" style="width: 18px; height: 18px" />
+          <span>Edit Profile</span>
+        </button>
+      </div>
+      <div class="sidebar-menu">
+        <div class="menu-item active">
+          <i class="fas fa-home"></i><span>Dashboard</span>
+        </div>
+        <div class="menu-item" onclick="nav('email_check.html')">
+          <i class="fas fa-shield-alt"></i><span>Check Email</span>
+        </div>
+        <div class="menu-item" onclick="nav('history.html')">
+          <i class="fas fa-history"></i><span>My History</span>
+        </div>
+        <div class="menu-item" onclick="nav('reports.html')">
+          <i class="fas fa-chart-bar"></i><span>My Reports</span>
+        </div>
+        <div class="menu-item" onclick="nav('user_feedback.html')">
+          <i class="fas fa-comment-alt"></i><span>Feedback</span>
+        </div>
+        <div class="menu-item" onclick="nav('pattern.html')">
+          <i class="fas fa-exclamation-triangle"></i><span>Patterns</span>
+        </div>
+        <div class="menu-item" onclick="nav('user_profile.html')">
+          <i class="fas fa-user"></i><span>Profile</span>
+        </div>
+        <div class="menu-item" onclick="nav('user_settings.html')">
+          <i class="fas fa-cog"></i><span>Settings</span>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="handleLogout()">
+        <img src="images/rename (2).png" alt="menu" style="width: 25px; height: 25px" />
+        <span>Logout</span>
+      </button>
+    </div>
+
+    <div class="main-content">
+      <div class="main-header">
+        <div class="header-title">
+          <h1 id="welcomeMsg">Welcome back!</h1>
+          <p id="welcomeSub">AI-powered email security</p>
+          <div class="last-updated" id="lastUpdated"></div>
+        </div>
+        <button class="refresh-btn" onclick="loadDashboard()">
+          <img src="images/refresh.png" alt="menu" style="width: 18px; height: 18px" />
+          Refresh
+        </button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>Total Scans</h3>
+            <div class="stat-number" id="totalScans"><div class="spinner"></div></div>
+          </div>
+          <div class="stat-icon">
+            <img src="images/scan (2).png" alt="menu" style="width: 50px; height: 50px" />
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>Phishing Detected</h3>
+            <div class="stat-number" id="phishingCount"><div class="spinner"></div></div>
+          </div>
+          <div class="stat-icon" style="background: linear-gradient(135deg, #ff6b8a, #c82333)">
+            <img src="images/phishing (1).png" alt="menu" style="width: 50px; height: 50px" />
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>Safe Emails</h3>
+            <div class="stat-number" id="safeCount"><div class="spinner"></div></div>
+          </div>
+          <div class="stat-icon" style="background: linear-gradient(135deg, #00e5cc, #2ab5c0)">
+            <img src="images/safe-email (2).png" alt="menu" style="width: 50px; height: 50px" />
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>Avg Confidence</h3>
+            <div class="stat-number" id="avgConf"><div class="spinner"></div></div>
+          </div>
+          <div class="stat-icon" style="background: linear-gradient(135deg, #7b5ea7, #9b7ebd)">
+            <img src="images/avg-conf (2).png" alt="menu" style="width: 50px; height: 50px" />
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-title">Quick Actions</h2>
+      <div class="action-grid">
+        <div class="action-card" onclick="nav('email_check.html')">
+          <div class="action-icon">
+            <img src="images/analyze-email (4).png" alt="menu" style="width: 50px; height: 50px" />
+          </div>
+          <h3>Analyze Email</h3>
+          <p>Paste email content to check for phishing using our AI model</p>
+        </div>
+
+        <div class="action-card" onclick="nav('history.html')">
+          <div class="action-icon">
+            <img src="images/h-scan (1).png" alt="menu" style="width: 50px; height: 50px" />
+          </div>
+          <h3>Scan History</h3>
+          <p>View all your previous email analysis results</p>
+        </div>
+
+        <div class="action-card" onclick="nav('user_feedback.html')">
+          <div class="action-icon">
+            <img src="images/feedback (1).png" alt="menu" style="width: 50px; height: 50px" />
+          </div>
+          <h3>Give Feedback</h3>
+          <p>Rate scan results and help improve the AI model</p>
+        </div>
+      </div>
+
+      <h2 class="section-title">Recent Activity</h2>
+      <div class="activity-list" id="activityList">
+        <div style="text-align: center; padding: 20px">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="api.js"></script>
+    <script>
+      const API_BASE = 'http://localhost:8000';
+
+      function nav(url) { window.location.href = url; }
+      function handleLogout() { localStorage.removeItem('user'); window.location.href = 'user_login.html'; }
+      function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+
+      function getUser() {
+        try {
+          const userStr = localStorage.getItem('user');
+          if (!userStr) return null;
+          const user = JSON.parse(userStr);
+          console.log('[DEBUG] User from localStorage:', user);
+          return user;
+        } catch (e) {
+          console.error('[ERROR] Failed to parse user:', e);
+          return null;
+        }
+      }
+
+      function isTokenExpired(token) {
+        if (!token) return true;
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          const expiry = payload.exp * 1000;
+          return Date.now() > expiry;
+        } catch (e) { return true; }
+      }
+
+      async function loadDashboard() {
+        const user = getUser();
+        if (!user || !user.access_token || isTokenExpired(user.access_token)) {
+          localStorage.removeItem('user');
+          alert('Session expired. Please login again.');
+          window.location.href = 'user_login.html';
+          return;
+        }
+
+        document.getElementById('sidebarName').textContent = user.username || user.name || 'User';
+        document.getElementById('sidebarEmail').textContent = user.email || '';
+        document.getElementById('welcomeMsg').textContent = `Welcome back, ${user.username || user.name || 'User'}!`;
+
+        ['totalScans', 'phishingCount', 'safeCount', 'avgConf'].forEach(id => {
+          document.getElementById(id).innerHTML = '<div class="spinner"></div>';
+        });
+
+        const userId = user.user_id;
+        console.log('[DEBUG] Fetching stats for user_id:', userId);
+        console.log('[DEBUG] Token:', user.access_token.substring(0, 50) + '...');
+
+        try {
+          const res = await fetch(`${API_BASE}/api/user/${userId}/stats`, {
+            headers: { 'Authorization': `Bearer ${user.access_token}` }
+          });
+          console.log('[DEBUG] Stats response status:', res.status);
+          if (!res.ok) {
+            if (res.status === 401) {
+              localStorage.removeItem('user');
+              alert('Session expired. Please login again.');
+              window.location.href = 'user_login.html';
+              return;
+            }
+            throw new Error(`HTTP ${res.status}`);
+          }
+          const data = await res.json();
+          console.log('[DEBUG] Stats data:', data);
+          const stats = data.stats || {};
+          document.getElementById('totalScans').textContent = parseInt(stats.total_scans || 0);
+          document.getElementById('phishingCount').textContent = parseInt(stats.phishing_count || 0);
+          document.getElementById('safeCount').textContent = parseInt(stats.safe_count || 0);
+          document.getElementById('avgConf').textContent = parseFloat(stats.avg_confidence || 0).toFixed(1) + '%';
+          document.getElementById('lastUpdated').textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+          user.total_scans = parseInt(stats.total_scans || 0);
+          localStorage.setItem('user', JSON.stringify(user));
+        } catch (err) {
+          console.error('[ERROR] Failed to load stats:', err);
+          document.getElementById('totalScans').textContent = '0';
+          document.getElementById('phishingCount').textContent = '0';
+          document.getElementById('safeCount').textContent = '0';
+          document.getElementById('avgConf').textContent = '0%';
+        }
+
+        try {
+          const res = await fetch(`${API_BASE}/api/user/${userId}/scans?limit=5&page=1`, {
+            headers: { 'Authorization': `Bearer ${user.access_token}` }
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          const scans = data.scans || [];
+          const list = document.getElementById('activityList');
+          if (!scans.length) {
+            list.innerHTML = '<div class="empty-state"><i class="fas fa-history"></i><p>No scan history yet</p><button class="btn-action" onclick="nav(\'email_check.html\')">Analyze First Email</button></div>';
+            return;
+          }
+          list.innerHTML = scans.map(s => {
+            const preview = (s.original_text || '').substring(0, 60) + '...';
+            const date = s.scan_timestamp ? new Date(s.scan_timestamp).toLocaleString() : '';
+            const isPhishing = s.prediction_result === 'phishing';
+            const conf = s.confidence_score ? parseFloat(s.confidence_score).toFixed(1) : '0';
+            return `<div class="activity-item">
+              <div class="activity-icon"><i class="fas fa-envelope"></i></div>
+              <div class="activity-details">
+                <h4>${escapeHtml(preview)}</h4>
+                <p>${date}</p>
+              </div>
+              <span class="activity-status ${isPhishing ? 'status-phishing' : 'status-safe'}">
+                ${isPhishing ? ' Phishing' : ' Safe'} (${conf}%)
+              </span>
+            </div>`;
+          }).join('') + `<div style="text-align:center;margin-top:14px;"><button class="btn-action" onclick="nav('history.html')">View All History</button></div>`;
+        } catch (err) {
+          console.error('[ERROR] Failed to load scans:', err);
+          document.getElementById('activityList').innerHTML = '<div class="empty-state"><p>Could not load recent activity</p></div>';
+        }
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') loadDashboard();
+      });
+
+      window.onload = loadDashboard;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1023 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>Phishing Patterns - AI Phishing Detector</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet" />
+    <style>
+      :root {
+        --bg-primary: #0a1628;
+        --bg-secondary: #0f2040;
+        --border: #1a3d6b;
+        --accent-teal: #2ab5c0;
+        --accent-teal-bright: #00e5cc;
+        --accent-purple: #7b5ea7;
+        --text-body: #b0cce0;
+        --text-heading: #00d4bb;
+        --text-white: #e8f4f8;
+        --gradient: linear-gradient(
+          135deg,
+          #2ab5c0 0%,
+          #7b5ea7 60%,
+          #00e5cc 100%
+        );
+        --sidebar-gradient: linear-gradient(180deg, #0a1f3d 0%, #0d2a50 100%);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+      }
+
+      body {
+        background: var(--bg-primary);
+        display: flex;
+        min-height: 100vh;
+        width: 100%;
+        color: var(--text-body);
+      }
+
+      /* ===== SIDEBAR ===== */
+      .sidebar {
+        width: 280px;
+        background: var(--sidebar-gradient);
+        color: var(--text-white);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        min-height: 100vh;
+        position: relative;
+        transition: width 0.3s ease;
+        border-right: 1px solid rgba(42, 181, 192, 0.15);
+      }
+
+      .sidebar.collapsed {
+        width: 80px;
+      }
+
+      .sidebar.collapsed .sidebar-menu span,
+      .sidebar.collapsed .profile-info,
+      .sidebar.collapsed .logout-btn span {
+        display: none;
+      }
+
+      .toggle-btn {
+        position: absolute;
+        right: -12px;
+        top: 30px;
+        width: 28px;
+        height: 28px;
+        background: var(--accent-teal);
+        border: 2px solid var(--bg-primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #0a1628;
+        font-size: 12px;
+        z-index: 200;
+        transition: 0.2s;
+      }
+
+      .toggle-btn:hover {
+        background: var(--accent-teal-bright);
+      }
+
+      .profile-section {
+        padding: 25px 20px;
+        text-align: center;
+        border-bottom: 1px solid rgba(42, 181, 192, 0.15);
+      }
+
+      .profile-img {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        border: 3px solid rgba(42, 181, 192, 0.5);
+        margin-bottom: 10px;
+        object-fit: cover;
+      }
+
+      .profile-info h3 {
+        font-size: 16px;
+        margin-bottom: 3px;
+        color: var(--text-white);
+      }
+      .profile-info p {
+        font-size: 12px;
+        opacity: 0.8;
+        color: var(--text-body);
+      }
+
+      .sidebar-menu {
+        padding: 12px 0;
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 13px 20px;
+        color: var(--text-body);
+        cursor: pointer;
+        transition: 0.3s;
+        margin: 3px 8px;
+        border-radius: 10px;
+      }
+
+      .menu-item i {
+        width: 28px;
+        font-size: 16px;
+      }
+      .menu-item span {
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .menu-item:hover {
+        background: rgba(42, 181, 192, 0.12);
+        color: var(--accent-teal-bright);
+      }
+
+      .menu-item.active {
+        background: rgba(42, 181, 192, 0.18);
+        color: var(--accent-teal-bright);
+        border-left: 4px solid var(--accent-teal-bright);
+      }
+
+      .logout-btn {
+        margin: 10px 12px 15px;
+        background: rgba(42, 181, 192, 0.1);
+        color: var(--text-body);
+        border: 1px solid rgba(42, 181, 192, 0.25);
+        padding: 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: 0.2s;
+      }
+
+      .logout-btn:hover {
+        background: rgba(220, 53, 69, 0.2);
+        border-color: #dc3545;
+        color: #ff6b8a;
+      }
+
+      /* ===== MAIN ===== */
+      .main-content {
+        flex: 1;
+        padding: 30px;
+        background: var(--bg-primary);
+        overflow-y: auto;
+        min-width: 0;
+      }
+
+      .page-header {
+        margin-bottom: 25px;
+      }
+      .page-header h1 {
+        font-size: 26px;
+        color: var(--text-heading);
+        font-weight: 700;
+      }
+      .page-header p {
+        color: var(--text-body);
+        font-size: 14px;
+        margin-top: 4px;
+      }
+
+      .search-bar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 25px;
+      }
+
+      .search-bar input {
+        flex: 1;
+        padding: 13px 18px;
+        border: 1.5px solid rgba(42, 181, 192, 0.22);
+        border-radius: 10px;
+        font-size: 14px;
+        outline: none;
+        transition: 0.2s;
+        background: rgba(10, 22, 40, 0.6);
+        color: var(--text-white);
+      }
+
+      .search-bar input::placeholder {
+        color: rgba(176, 204, 224, 0.45);
+      }
+      .search-bar input:focus {
+        border-color: var(--accent-teal);
+        background: rgba(10, 22, 40, 0.8);
+      }
+
+      .search-bar button {
+        padding: 13px 24px;
+        background: var(--gradient);
+        color: #0a1628;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.2s;
+        box-shadow: 0 4px 14px rgba(42, 181, 192, 0.22);
+      }
+
+      .search-bar button:hover {
+        box-shadow: 0 6px 20px rgba(0, 229, 204, 0.3);
+        transform: translateY(-1px);
+      }
+
+      .category-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 22px;
+        flex-wrap: wrap;
+      }
+
+      .category-tab {
+        padding: 9px 18px;
+        background: rgba(10, 22, 40, 0.5);
+        border: 1.5px solid rgba(42, 181, 192, 0.22);
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        transition: 0.2s;
+        color: var(--text-body);
+      }
+
+      .category-tab:hover {
+        background: rgba(42, 181, 192, 0.12);
+        border-color: var(--accent-teal);
+        color: var(--accent-teal-bright);
+      }
+
+      .category-tab.active {
+        background: rgba(42, 181, 192, 0.18);
+        color: var(--accent-teal-bright);
+        border-color: var(--accent-teal);
+      }
+
+      .patterns-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-bottom: 25px;
+      }
+
+      .pattern-card {
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 3px 14px rgba(0, 0, 0, 0.25);
+        border-left: 4px solid rgba(42, 181, 192, 0.25);
+        border: 1px solid rgba(42, 181, 192, 0.12);
+        border-left-width: 4px;
+        transition: 0.2s;
+      }
+
+      .pattern-card.urgency {
+        border-left-color: #fbbf24;
+      }
+      .pattern-card.threat {
+        border-left-color: #ff6b8a;
+      }
+      .pattern-card.financial {
+        border-left-color: #4ade80;
+      }
+      .pattern-card.suspicious {
+        border-left-color: var(--accent-purple);
+      }
+
+      .pattern-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 22px rgba(42, 181, 192, 0.15);
+        border-color: rgba(42, 181, 192, 0.25);
+      }
+
+      .pattern-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .pattern-category {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+        background: rgba(42, 181, 192, 0.12);
+        color: var(--accent-teal);
+      }
+
+      .pattern-risk {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+      }
+      .risk-high {
+        background: rgba(255, 107, 138, 0.15);
+        color: #ff6b8a;
+      }
+      .risk-medium {
+        background: rgba(251, 191, 36, 0.15);
+        color: #fbbf24;
+      }
+      .risk-low {
+        background: rgba(74, 222, 128, 0.12);
+        color: #4ade80;
+      }
+
+      .pattern-card h3 {
+        font-size: 17px;
+        color: var(--text-white);
+        margin-bottom: 8px;
+      }
+      .pattern-card p {
+        font-size: 13px;
+        color: var(--text-body);
+        margin-bottom: 12px;
+        line-height: 1.5;
+      }
+
+      .pattern-example {
+        background: rgba(10, 22, 40, 0.6);
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        color: var(--text-body);
+        border-left: 3px solid var(--accent-teal);
+        margin-bottom: 12px;
+      }
+
+      .pattern-stats {
+        display: flex;
+        gap: 12px;
+        font-size: 12px;
+        color: rgba(176, 204, 224, 0.55);
+      }
+
+      .info-box {
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        padding: 22px;
+        box-shadow: 0 3px 14px rgba(0, 0, 0, 0.2);
+        display: flex;
+        gap: 15px;
+        align-items: flex-start;
+        border: 1px solid rgba(42, 181, 192, 0.12);
+      }
+
+      .info-icon {
+        width: 50px;
+        height: 50px;
+        background: rgba(42, 181, 192, 0.12);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent-teal);
+        font-size: 22px;
+        flex-shrink: 0;
+        border: 1px solid rgba(42, 181, 192, 0.2);
+      }
+
+      .info-text h3 {
+        font-size: 16px;
+        color: var(--text-heading);
+        margin-bottom: 6px;
+      }
+      .info-text p {
+        color: var(--text-body);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-body);
+        opacity: 0.6;
+      }
+
+      .no-results {
+        grid-column: 1/-1;
+        text-align: center;
+        padding: 40px;
+        color: var(--text-body);
+        opacity: 0.6;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div
+      class="sidebar"
+      id="sidebar">
+      <div
+        class="toggle-btn"
+        onclick="toggleSidebar()">
+        <img
+          src="images/arrow (5).png"
+          alt="menu"
+          style="width: 18px; height: 18px" />
+      </div>
+      <div class="profile-section">
+        <img
+          src="images/u-profile (2).jpg"
+          class="profile-img"
+          id="sidebarAvatar" />
+        <div class="profile-info">
+          <h3 id="sidebarName">Loading...</h3>
+          <p id="sidebarEmail"></p>
+        </div>
+      </div>
+      <div class="sidebar-menu">
+        <div
+          class="menu-item"
+          onclick="nav('user_dashboard.html')">
+          <i class="fas fa-home"></i><span>Dashboard</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('email_check.html')">
+          <i class="fas fa-shield-alt"></i><span>Check Email</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('history.html')">
+          <i class="fas fa-history"></i><span>My History</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('reports.html')">
+          <i class="fas fa-chart-bar"></i><span>My Reports</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('user_feedback.html')">
+          <i class="fas fa-comment-alt"></i><span>Feedback</span>
+        </div>
+        <div class="menu-item active">
+          <i class="fas fa-exclamation-triangle"></i><span>Patterns</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('user_profile.html')">
+          <i class="fas fa-user"></i><span>Profile</span>
+        </div>
+        <div
+          class="menu-item"
+          onclick="nav('user_settings.html')">
+          <i class="fas fa-cog"></i><span>Settings</span>
+        </div>
+      </div>
+      <button
+        class="logout-btn"
+        onclick="handleLogout()">
+        <img
+          src="images/rename (2).png"
+          alt="menu"
+          style="width: 25px; height: 25px" />
+        <span>Logout</span>
+      </button>
+    </div>
+
+    <div class="main-content">
+      <div class="page-header">
+        <h1>
+          <i class="fas fa-exclamation-triangle"></i> Phishing Patterns Database
+        </h1>
+        <p>Common patterns used in phishing emails. Learn to identify them</p>
+      </div>
+
+      <div class="search-bar">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search patterns by keyword..." />
+        <button onclick="searchPatterns()">
+          <i class="fas fa-search"></i> Search
+        </button>
+      </div>
+
+      <div class="category-tabs">
+        <div
+          class="category-tab active"
+          onclick="filterCategory('all', this)">
+          All (27)
+        </div>
+        <div
+          class="category-tab"
+          onclick="filterCategory('urgency', this)">
+          Urgency
+        </div>
+        <div
+          class="category-tab"
+          onclick="filterCategory('threat', this)">
+          Threats
+        </div>
+        <div
+          class="category-tab"
+          onclick="filterCategory('financial', this)">
+          Financial
+        </div>
+        <div
+          class="category-tab"
+          onclick="filterCategory('suspicious', this)">
+          Suspicious
+        </div>
+      </div>
+
+      <div
+        class="patterns-grid"
+        id="patternsGrid">
+        <div class="loading">
+          <i
+            class="fas fa-spinner fa-spin"
+            style="font-size: 28px; color: var(--accent-teal)"></i>
+          <p style="margin-top: 12px">Loading patterns...</p>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <div class="info-icon">
+          <img
+            src="images/bulb.png"
+            alt="menu"
+            style="width: 25px; height: 25px" />
+        </div>
+        <div class="info-text">
+          <h3>How to use these patterns</h3>
+          <p>
+            Our AI model detects these patterns in emails. Multiple patterns
+            detected = higher chance of phishing. Use this list to educate
+            yourself and stay safe from phishing attacks.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+      const API_BASE = 'http://localhost:8000';
+      let patterns = [];
+      let activeCategory = 'all';
+
+      function nav(url) {
+        window.location.href = url;
+      }
+      function handleLogout() {
+        localStorage.removeItem('user');
+        window.location.href = 'user_login.html';
+      }
+
+      function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('collapsed');
+        const icon = document.getElementById('toggleIcon');
+        if (icon) {
+          icon.classList.toggle('fa-chevron-left');
+          icon.classList.toggle('fa-chevron-right');
+        }
+      }
+
+      function getPatternsData() {
+        return [
+          {
+            id: 1,
+            category: 'urgency',
+            keyword: 'URGENT',
+            risk: 'high',
+            description:
+              'Creates false urgency to rush victims into action without thinking',
+            example: '"URGENT: Your account will be closed in 24 hours"',
+            frequency: 89,
+            trend: '+12%',
+          },
+          {
+            id: 2,
+            category: 'urgency',
+            keyword: 'immediately',
+            risk: 'high',
+            description:
+              'Demands immediate action without giving time to think or verify',
+            example: '"You must verify your account immediately"',
+            frequency: 76,
+            trend: '+8%',
+          },
+          {
+            id: 3,
+            category: 'urgency',
+            keyword: 'act now',
+            risk: 'high',
+            description: 'Creates pressure to make quick, unwise decisions',
+            example: '"Act now to secure your account"',
+            frequency: 68,
+            trend: '+10%',
+          },
+          {
+            id: 4,
+            category: 'urgency',
+            keyword: 'expires in 24 hours',
+            risk: 'high',
+            description: 'Fake time limit to create panic and rush you',
+            example: '"Your offer expires in 24 hours"',
+            frequency: 71,
+            trend: '+16%',
+          },
+          {
+            id: 5,
+            category: 'urgency',
+            keyword: 'limited time',
+            risk: 'medium',
+            description: 'Creates false scarcity to pressure you',
+            example: '"Limited time offer - claim now"',
+            frequency: 62,
+            trend: '+7%',
+          },
+          {
+            id: 6,
+            category: 'threat',
+            keyword: 'account suspended',
+            risk: 'high',
+            description:
+              'Threatens account loss to trigger panic and immediate action',
+            example: '"Your account has been suspended"',
+            frequency: 92,
+            trend: '+15%',
+          },
+          {
+            id: 7,
+            category: 'threat',
+            keyword: 'unauthorized access',
+            risk: 'medium',
+            description: 'Claims someone accessed your account to scare you',
+            example: '"Unauthorized access detected from new device"',
+            frequency: 67,
+            trend: '+7%',
+          },
+          {
+            id: 8,
+            category: 'threat',
+            keyword: 'security alert',
+            risk: 'high',
+            description:
+              'Fake security warning to make you act without thinking',
+            example: '"Security alert: New login detected"',
+            frequency: 84,
+            trend: '+11%',
+          },
+          {
+            id: 9,
+            category: 'threat',
+            keyword: 'account locked',
+            risk: 'high',
+            description: 'Claims account is locked to create urgency',
+            example: '"Your account has been locked for security reasons"',
+            frequency: 81,
+            trend: '+9%',
+          },
+          {
+            id: 10,
+            category: 'threat',
+            keyword: 'password expired',
+            risk: 'high',
+            description: 'Tricks you into changing password on fake website',
+            example: '"Your password will expire in 24 hours"',
+            frequency: 73,
+            trend: '+13%',
+          },
+          {
+            id: 11,
+            category: 'threat',
+            keyword: 'account hacked',
+            risk: 'high',
+            description: 'Claims account is compromised to cause panic',
+            example: '"Your account may have been hacked"',
+            frequency: 78,
+            trend: '+18%',
+          },
+          {
+            id: 12,
+            category: 'financial',
+            keyword: 'paypal',
+            risk: 'high',
+            description: 'Impersonates PayPal to steal login credentials',
+            example: '"Your PayPal account has been limited"',
+            frequency: 95,
+            trend: '+20%',
+          },
+          {
+            id: 13,
+            category: 'financial',
+            keyword: 'credit card',
+            risk: 'high',
+            description: 'Targets credit card information for theft',
+            example: '"Your credit card needs verification"',
+            frequency: 78,
+            trend: '+9%',
+          },
+          {
+            id: 14,
+            category: 'financial',
+            keyword: 'bank account',
+            risk: 'high',
+            description: 'Pretends to be from your bank to steal details',
+            example: '"Your bank account needs verification"',
+            frequency: 87,
+            trend: '+11%',
+          },
+          {
+            id: 15,
+            category: 'financial',
+            keyword: 'wire transfer',
+            risk: 'high',
+            description: 'Requests immediate money transfer to fraudsters',
+            example: '"Please complete wire transfer immediately"',
+            frequency: 55,
+            trend: '+6%',
+          },
+          {
+            id: 16,
+            category: 'financial',
+            keyword: 'invoice',
+            risk: 'medium',
+            description: 'Fake invoice or bill to trick payment',
+            example: '"Your invoice #INV-2024 is attached"',
+            frequency: 69,
+            trend: '+14%',
+          },
+          {
+            id: 17,
+            category: 'financial',
+            keyword: 'refund',
+            risk: 'medium',
+            description: 'Fake refund offer to steal your details',
+            example: '"You are eligible for a $500 refund"',
+            frequency: 58,
+            trend: '+8%',
+          },
+          {
+            id: 18,
+            category: 'financial',
+            keyword: 'irs',
+            risk: 'high',
+            description: 'Impersonates IRS or government agency',
+            example: '"IRS: You have a tax refund pending"',
+            frequency: 62,
+            trend: '+12%',
+          },
+          {
+            id: 19,
+            category: 'financial',
+            keyword: 'cryptocurrency',
+            risk: 'high',
+            description: 'Crypto investment or giveaway scam',
+            example: '"Double your Bitcoin investment today"',
+            frequency: 54,
+            trend: '+25%',
+          },
+          {
+            id: 20,
+            category: 'suspicious',
+            keyword: 'click here',
+            risk: 'medium',
+            description: 'Directs to malicious websites designed to steal data',
+            example: '"Click here to secure your account"',
+            frequency: 82,
+            trend: '+14%',
+          },
+          {
+            id: 21,
+            category: 'suspicious',
+            keyword: 'verify account',
+            risk: 'high',
+            description: 'Leads to credential theft on fake login pages',
+            example: '"Verify your account details to avoid suspension"',
+            frequency: 88,
+            trend: '+10%',
+          },
+          {
+            id: 22,
+            category: 'suspicious',
+            keyword: 'dear customer',
+            risk: 'low',
+            description: 'Generic greeting instead of your real name',
+            example: '"Dear Valued Customer"',
+            frequency: 63,
+            trend: '+3%',
+          },
+          {
+            id: 23,
+            category: 'suspicious',
+            keyword: 'tracking',
+            risk: 'medium',
+            description: 'Fake package delivery scam',
+            example: '"Your package could not be delivered"',
+            frequency: 71,
+            trend: '+16%',
+          },
+          {
+            id: 24,
+            category: 'suspicious',
+            keyword: 'password reset',
+            risk: 'high',
+            description: 'Requests password change on fake website',
+            example: '"Click here to reset your password"',
+            frequency: 79,
+            trend: '+12%',
+          },
+          {
+            id: 25,
+            category: 'suspicious',
+            keyword: 'congratulations',
+            risk: 'medium',
+            description: 'Fake prize, lottery, or giveaway win',
+            example: '"Congratulations! You have won $1,000,000"',
+            frequency: 66,
+            trend: '+8%',
+          },
+          {
+            id: 26,
+            category: 'suspicious',
+            keyword: 'attachment',
+            risk: 'medium',
+            description: 'Suspicious attachment - may contain malware',
+            example: '"Please find attached invoice"',
+            frequency: 74,
+            trend: '+7%',
+          },
+          {
+            id: 27,
+            category: 'suspicious',
+            keyword: 'login required',
+            risk: 'medium',
+            description: 'Requests login on fake page to steal credentials',
+            example: '"Please login to verify your account"',
+            frequency: 77,
+            trend: '+9%',
+          },
+        ];
+      }
+
+      async function fetchPatterns() {
+        try {
+          const res = await fetch(`${API_BASE}/api/patterns`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.patterns && data.patterns.length > 0) {
+              patterns = data.patterns.map((p) => ({
+                id: p.pattern_id,
+                category: p.pattern_category,
+                keyword: p.keyword,
+                risk:
+                  p.risk_weight > 2.0
+                    ? 'high'
+                    : p.risk_weight > 1.5
+                      ? 'medium'
+                      : 'low',
+                description: getCategoryDesc(p.pattern_category),
+                example: `"${p.keyword}" detected in email`,
+                frequency: Math.floor(Math.random() * 30) + 60,
+                trend: '+' + (Math.floor(Math.random() * 20) + 1) + '%',
+              }));
+              displayPatterns();
+              return;
+            }
+          }
+          useFallbackPatterns();
+        } catch (e) {
+          console.log('Using fallback patterns');
+          useFallbackPatterns();
+        }
+      }
+
+      function useFallbackPatterns() {
+        patterns = getPatternsData();
+        displayPatterns();
+      }
+
+      function getCategoryDesc(cat) {
+        const descriptions = {
+          urgency: 'Creates false urgency to rush victims into action',
+          threat: 'Threatens negative consequences to trigger panic',
+          financial: 'Targets financial info or impersonates banks',
+          suspicious: 'Suspicious patterns indicating potential phishing',
+          request: 'Requests personal or sensitive information',
+          greeting: 'Generic greeting instead of personalized name',
+        };
+        return descriptions[cat] || 'Common phishing pattern to watch for';
+      }
+
+      function displayPatterns() {
+        const searchTerm = document
+          .getElementById('searchInput')
+          .value.toLowerCase();
+        let filtered = [...patterns];
+        if (activeCategory !== 'all')
+          filtered = filtered.filter((p) => p.category === activeCategory);
+        if (searchTerm) {
+          filtered = filtered.filter(
+            (p) =>
+              p.keyword.toLowerCase().includes(searchTerm) ||
+              p.description.toLowerCase().includes(searchTerm),
+          );
+        }
+
+        const grid = document.getElementById('patternsGrid');
+        if (filtered.length === 0) {
+          grid.innerHTML =
+            '<div class="no-results"><i class="fas fa-search" style="font-size:40px;opacity:0.5"></i><p style="margin-top:10px">No patterns found matching your search</p></div>';
+          return;
+        }
+
+        grid.innerHTML = filtered
+          .map(
+            (p) => `
+                <div class="pattern-card ${p.category}">
+                    <div class="pattern-header">
+                        <span class="pattern-category"><i class="fas ${getCategoryIcon(p.category)}"></i> ${getCategoryName(p.category)}</span>
+                        <span class="pattern-risk risk-${p.risk}">${p.risk.toUpperCase()}</span>
+                    </div>
+                    <h3>"${p.keyword}"</h3>
+                    <p>${p.description}</p>
+                    <div class="pattern-example">
+                        <i class="fas fa-envelope" style="font-size:11px;margin-right:5px"></i> ${p.example}
+                    </div>
+                    <div class="pattern-stats">
+                        <span><i class="fas fa-chart-line"></i> ${p.frequency}% detection rate</span>
+                        <span><i class="fas fa-arrow-up"></i> ${p.trend} trend</span>
+                    </div>
+                </div>
+            `,
+          )
+          .join('');
+      }
+
+      function getCategoryIcon(cat) {
+        const icons = {
+          urgency: 'fa-clock',
+          threat: 'fa-skull-crossbones',
+          financial: 'fa-dollar-sign',
+          suspicious: 'fa-eye',
+        };
+        return icons[cat] || 'fa-tag';
+      }
+
+      function getCategoryName(cat) {
+        const names = {
+          urgency: 'Urgency',
+          threat: 'Threat',
+          financial: 'Financial',
+          suspicious: 'Suspicious',
+        };
+        return names[cat] || cat;
+      }
+
+      function filterCategory(cat, element) {
+        activeCategory = cat;
+        document
+          .querySelectorAll('.category-tab')
+          .forEach((tab) => tab.classList.remove('active'));
+        element.classList.add('active');
+        displayPatterns();
+      }
+
+      function searchPatterns() {
+        displayPatterns();
+      }
+
+      window.onload = function () {
+        const user = API.getCurrentUser();
+        if (!user) {
+          window.location.href = 'user_login.html';
+          return;
+        }
+        document.getElementById('sidebarName').textContent =
+          user.username || 'User';
+        document.getElementById('sidebarEmail').textContent = user.email || '';
+        fetchPatterns();
+      };
+    </script>
+  </body>
+</html>

@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Scans Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #0a1628;
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: linear-gradient(180deg, #0f2040 0%, #0a1628 100%);
+            color: #b0cce0;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            min-height: 100vh;
+            transition: width 0.3s ease;
+            overflow: hidden;
+            border-right: 1px solid #1a3d6b;
+        }
+
+        .sidebar.collapsed { width: 60px; }
+        .sidebar.collapsed .sidebar-brand p,
+        .sidebar.collapsed .admin-name,
+        .sidebar.collapsed .role-badge,
+        .sidebar.collapsed .nav-label,
+        .sidebar.collapsed .logout-text { display: none; }
+        .sidebar.collapsed .nav-item { justify-content: center; padding: 12px 0; }
+        .sidebar.collapsed .admin-avatar { margin: 10px auto; }
+        .sidebar.collapsed .sidebar-profile { padding: 10px 0; }
+        .sidebar.collapsed .sidebar-brand { justify-content: center; padding: 15px 0; }
+        .sidebar.collapsed .brand-text { display: none; }
+
+        .sidebar-brand {
+            padding: 16px 18px;
+            border-bottom: 1px solid #1a3d6b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: space-between;
+        }
+
+        .brand-left { display: flex; align-items: center; gap: 10px; }
+
+        .brand-icon {
+            width: 34px;
+            height: 34px;
+            background: rgba(42, 181, 192, 0.15);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+            border: 1px solid #2ab5c0;
+        }
+
+        .brand-text h2 { font-size: 14px; font-weight: 700; color: #00d4bb; }
+        .brand-text p { font-size: 10px; opacity: 0.7; margin-top: 1px; color: #b0cce0; }
+
+        .toggle-sidebar-btn {
+            background: rgba(42, 181, 192, 0.15);
+            border: 1px solid #1a3d6b;
+            color: #2ab5c0;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: 0.2s;
+        }
+
+        .toggle-sidebar-btn:hover { background: rgba(0, 229, 204, 0.25); border-color: #00e5cc; }
+
+        .sidebar-profile {
+            padding: 16px 18px;
+            border-bottom: 1px solid #1a3d6b;
+            text-align: center;
+        }
+
+        .admin-avatar {
+            width: 56px;
+            height: 56px;
+            background: rgba(42, 181, 192, 0.1);
+            border-radius: 50%;
+            border: 2px solid #2ab5c0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin: 0 auto 8px;
+            overflow: hidden;
+        }
+
+        .admin-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .admin-name { font-size: 14px; font-weight: 600; color: #b0cce0; }
+
+        .role-badge {
+            display: inline-block;
+            background: #2ab5c0;
+            color: #0a1628;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-top: 4px;
+        }
+
+        .notif-bell-btn {
+            background: rgba(42, 181, 192, 0.15);
+            border: 1px solid #1a3d6b;
+            color: #2ab5c0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: 0.2s;
+            position: relative;
+            margin: 6px auto 0;
+        }
+
+        .notif-bell-btn:hover { background: rgba(0, 229, 204, 0.25); border-color: #00e5cc; }
+
+        .notif-bell-badge {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            background: #7b5ea7;
+            color: white;
+            font-size: 8px;
+            font-weight: 700;
+            min-width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 2px;
+        }
+
+        .sidebar-nav { flex: 1; padding: 10px 8px; overflow-y: auto; }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #b0cce0;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 2px;
+            white-space: nowrap;
+        }
+
+        .nav-item i { font-size: 15px; width: 18px; flex-shrink: 0; color: #4a6080; }
+        .nav-item:hover { background: rgba(42, 181, 192, 0.1); color: #00e5cc; }
+        .nav-item:hover i { color: #00e5cc; }
+
+        .nav-item.active {
+            background: rgba(42, 181, 192, 0.15);
+            color: #00d4bb;
+            border-left: 3px solid #2ab5c0;
+            padding-left: 9px;
+        }
+
+        .nav-item.active i { color: #2ab5c0; }
+
+        .sidebar-footer { padding: 10px 10px 16px; border-top: 1px solid #1a3d6b; }
+
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            background: rgba(229, 62, 62, 0.1);
+            color: #fc8181;
+            border: 1px solid rgba(229, 62, 62, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+
+        .logout-btn:hover { background: #e53e3e; border-color: #e53e3e; color: white; }
+
+        .main {
+            flex: 1;
+            min-width: 0;
+            overflow-y: auto;
+            padding: 26px;
+            background: #0a1628;
+        }
+
+        .page-header { margin-bottom: 25px; }
+        .page-header h1 { font-size: 26px; color: #00d4bb; font-weight: 700; }
+        .page-header p { color: #4a6080; font-size: 13px; margin-top: 4px; }
+
+        .controls {
+            background: #0f2040;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            border: 1px solid #1a3d6b;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #1a3d6b;
+            border-radius: 20px;
+            background: transparent;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: 0.2s;
+            color: #b0cce0;
+        }
+
+        .filter-btn:hover, .filter-btn.active { background: #2ab5c0; color: #0a1628; border-color: #2ab5c0; }
+        .filter-btn.phishing.active { background: #e53e3e; border-color: #e53e3e; color: white; }
+        .filter-btn.safe.active { background: #00e5cc; border-color: #00e5cc; color: #0a1628; }
+
+        .scans-card {
+            background: #0f2040;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            border: 1px solid #1a3d6b;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        table th {
+            text-align: left;
+            padding: 12px;
+            color: #4a6080;
+            font-size: 12px;
+            font-weight: 600;
+            border-bottom: 2px solid #1a3d6b;
+            text-transform: uppercase;
+        }
+
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #1a3d6b;
+            font-size: 13px;
+            color: #b0cce0;
+        }
+
+        table tr:last-child td { border-bottom: none; }
+        table tr:hover td { background: rgba(42, 181, 192, 0.05); }
+
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .badge-danger { background: rgba(229, 62, 62, 0.2); color: #fc8181; border: 1px solid rgba(229, 62, 62, 0.3); }
+        .badge-success { background: rgba(0, 229, 204, 0.15); color: #00e5cc; border: 1px solid rgba(0, 229, 204, 0.3); }
+        .badge-warning { background: rgba(123, 94, 167, 0.2); color: #b388ff; border: 1px solid rgba(123, 94, 167, 0.3); }
+
+        .email-preview {
+            max-width: 250px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #4a6080;
+            font-size: 12px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #1a3d6b;
+        }
+
+        .pagination .info { font-size: 13px; color: #4a6080; }
+        .pagination .btns { display: flex; gap: 8px; }
+
+        .pagination button {
+            padding: 8px 16px;
+            border: 1px solid #1a3d6b;
+            border-radius: 8px;
+            background: transparent;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.2s;
+            color: #b0cce0;
+        }
+
+        .pagination button:hover:not(:disabled) { background: #2ab5c0; color: #0a1628; border-color: #2ab5c0; }
+        .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .export-btn {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #2ab5c0, #7b5ea7);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: 0.2s;
+            margin-left: auto;
+        }
+
+        .export-btn:hover { background: linear-gradient(135deg, #00e5cc, #7b5ea7); transform: translateY(-1px); }
+
+        .loading { text-align: center; padding: 40px; color: #4a6080; }
+
+        .spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #1a3d6b;
+            border-top: 3px solid #2ab5c0;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<script src="theme.js"></script>
+
+<body>
+    <div class="sidebar" id="adminSidebar">
+        <div class="sidebar-brand">
+            <div class="brand-left">
+                <div class="brand-icon">
+                    <img src="images/shield.png" alt="shield" style="width: 22px; height: 22px;">
+                </div>
+                <div class="brand-text">
+                    <h2>Admin Panel</h2>
+                    <p>Phishing Detector</p>
+                </div>
+            </div>
+            <button class="toggle-sidebar-btn" onclick="toggleAdminSidebar()">
+                <img src="images/toggle (1).png" alt="menu" style="width: 18px; height: 18px;">
+            </button>
+        </div>
+        <div class="sidebar-profile">
+            <div class="admin-avatar" id="sidebarAvatarDiv">
+                <img src="images/software-engineer.png" alt="admin" id="sidebarAvatarIcon" style="width: 56px; height: 56px; border-radius: 50%;">
+            </div>
+            <div class="admin-name" id="adminName">admin</div>
+            <div class="role-badge">ADMIN</div>
+            <button class="notif-bell-btn" onclick="nav('admin_notifications.html')" title="Notifications">
+                <img src="images/notification-bell (1).png" alt="notifications" style="width: 18px; height: 18px;">
+                <span class="notif-bell-badge" id="notifBadge" style="display:none">0</span>
+            </button>
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-item" onclick="nav('admin_dashboard.html')">
+                <i class="fas fa-th-large"></i>
+                <span class="nav-label"> Dashboard</span>
+            </div>
+            <div class="nav-item" onclick="nav('manage_users.html')">
+                <i class="fas fa-users"></i>
+                <span class="nav-label"> Manage Users</span>
+            </div>
+            <div class="nav-item active">
+                <i class="fas fa-envelope-open-text"></i>
+                <span class="nav-label"> Email Scans</span>
+            </div>
+            <div class="nav-item" onclick="nav('admin_analytics.html')">
+                <i class="fas fa-chart-line"></i>
+                <span class="nav-label"> Analytics</span>
+            </div>
+            <div class="nav-item" onclick="nav('admin_feedback.html')">
+                <i class="fas fa-comments"></i>
+                <span class="nav-label"> Feedback</span>
+            </div>
+            <div class="nav-item" onclick="nav('admin_model.html')">
+                <i class="fas fa-brain"></i>
+                <span class="nav-label"> ML Model</span>
+            </div>
+            <div class="nav-item" onclick="nav('admin_profile.html')">
+                <i class="fas fa-user-circle"></i>
+                <span class="nav-label"> My Profile</span>
+            </div>
+            <div class="nav-item" onclick="nav('admin_settings.html')">
+                <i class="fas fa-cog"></i>
+                <span class="nav-label"> Settings</span>
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="adminLogout()">
+                <img src="images/rename (1).png" alt="logout" style="width: 18px; height: 18px;">
+                <span class="logout-text"> Logout</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="page-header">
+            <h1> Email Scans</h1>
+            <p>All email scans performed by users</p>
+        </div>
+
+        <div class="controls">
+            <button class="filter-btn active" onclick="setFilter('all', this)" id="filterAll">All</button>
+            <button class="filter-btn phishing" onclick="setFilter('phishing', this)"> Phishing</button>
+            <button class="filter-btn safe" onclick="setFilter('safe', this)"> Safe</button>
+            <span id="scanCount" style="font-size:13px;color:#4a6080"></span>
+            <button class="export-btn" onclick="exportCSV()">
+                <i class="fas fa-download"></i> Export CSV</button>
+        </div>
+
+        <div class="scans-card">
+            <div id="tableContainer">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+            <div class="pagination" id="pagination" style="display:none">
+                <div class="info" id="pageInfo"></div>
+                <div class="btns">
+                    <button onclick="changePage(-1)" id="prevBtn">Previous</button>
+                    <button onclick="changePage(1)" id="nextBtn">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function nav(url) { window.location.href = url; }
+        function adminLogout() { localStorage.removeItem('admin'); localStorage.removeItem('adminLoggedIn'); window.location.href = 'admin_login.html'; }
+        function checkAdminAuth() {
+            const a = JSON.parse(localStorage.getItem('admin') || 'null');
+            if (!a || a.role !== 'admin') { window.location.href = 'admin_login.html'; return null; }
+            if (document.getElementById('adminName')) document.getElementById('adminName').textContent = a.username || 'admin';
+            return a;
+        }
+        function toggleAdminSidebar() {
+            const sb = document.getElementById('adminSidebar');
+            sb.classList.toggle('collapsed');
+            localStorage.setItem('adminSidebarCollapsed', sb.classList.contains('collapsed') ? '1' : '0');
+        }
+        function initAdminSidebar() {
+            if (localStorage.getItem('adminSidebarCollapsed') === '1') {
+                const sb = document.getElementById('adminSidebar');
+                if (sb) sb.classList.add('collapsed');
+            }
+            const saved = localStorage.getItem('adminAvatar');
+            const div = document.getElementById('sidebarAvatarDiv');
+            if (saved && div) div.innerHTML = '<img src="' + saved + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+        }
+        window.addEventListener('DOMContentLoaded', initAdminSidebar);
+
+        const API = 'http://localhost:8000';
+        let currentPage = 1;
+        const limit = 25;
+        let totalScans = 0;
+        let allScans = [];
+        let activeFilter = 'all';
+
+        async function loadScans(page = 1) {
+            const admin = checkAdminAuth();
+            currentPage = page;
+            document.getElementById('tableContainer').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            try {
+                const res = await fetch(`${API}/api/admin/scans?limit=${limit}&page=${page}`, {
+                    headers: { 'Authorization': `Bearer ${admin.access_token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    allScans = data.scans || [];
+                    totalScans = data.total || 0;
+                    document.getElementById('scanCount').textContent = `Total: ${totalScans} scans`;
+                    renderTable(filterScans(allScans));
+                    updatePagination();
+                    document.getElementById('pagination').style.display = 'flex';
+                } else {
+                    document.getElementById('tableContainer').innerHTML = '<div class="loading" style="color:#fc8181"> Failed to load scans</div>';
+                }
+            } catch (e) {
+                document.getElementById('tableContainer').innerHTML = '<div class="loading" style="color:#fc8181"> Cannot connect to backend</div>';
+            }
+        }
+
+        function filterScans(scans) {
+            if (activeFilter === 'all') return scans;
+            return scans.filter(s => s.prediction_result === activeFilter);
+        }
+
+        function setFilter(filter, btn) {
+            activeFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderTable(filterScans(allScans));
+        }
+
+        function renderTable(scans) {
+            if (!scans.length) {
+                document.getElementById('tableContainer').innerHTML = '<div class="loading">No scans found</div>';
+                return;
+            }
+            let html = `<table><thead><tr>
+                <th>ID</th><th>User</th><th>Email Preview</th>
+                <th>Result</th><th>Confidence</th><th>Risk</th><th>Date</th>
+            </tr></thead><tbody>`;
+            scans.forEach(s => {
+                const preview = (s.original_text || '').substring(0, 60) + '...';
+                const date = s.scan_timestamp ? new Date(s.scan_timestamp).toLocaleString() : '-';
+                const resultClass = s.prediction_result === 'phishing' ? 'badge-danger' : 'badge-success';
+                const riskClass = s.risk_level === 'high' ? 'badge-danger' : s.risk_level === 'medium' ? 'badge-warning' : 'badge-success';
+                html += `<tr>
+                    <td>#${s.scan_id}</td>
+                    <td>${s.user_name || 'Anon'}</td>
+                    <td class="email-preview" title="${(s.original_text || '').replace(/"/g, '')}">${preview}</td>
+                    <td><span class="badge ${resultClass}">${(s.prediction_result || '').toUpperCase()}</span></td>
+                    <td>${s.confidence_score ? s.confidence_score.toFixed(1) + '%' : '-'}</td>
+                    <td><span class="badge ${riskClass}">${(s.risk_level || '').toUpperCase()}</span></td>
+                    <td>${date}</td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('tableContainer').innerHTML = html;
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(totalScans / limit);
+            document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages} (${totalScans} scans)`;
+            document.getElementById('prevBtn').disabled = currentPage <= 1;
+            document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+        }
+
+        function changePage(delta) { loadScans(currentPage + delta); }
+
+        function exportCSV() {
+            if (!allScans.length) { alert('No data to export'); return; }
+            let csv = 'Scan ID,User,Result,Confidence,Risk Level,Date\n';
+            allScans.forEach(s => {
+                csv += `${s.scan_id},"${s.user_name || ''}","${s.prediction_result}","${s.confidence_score?.toFixed(1) || ''}","${s.risk_level}","${s.scan_timestamp}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `admin_scans_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        window.onload = () => { checkAdminAuth(); loadScans(1); };
+    </script>
+</body>
+</html>

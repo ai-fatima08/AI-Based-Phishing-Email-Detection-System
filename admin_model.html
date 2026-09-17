@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>ML Model Admin Panel</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet" />
+    <style>
+      :root {
+        --bg-main: #0a1628;
+        --bg-card: #0f2040;
+        --bg-border: #1a3d6b;
+        --accent-teal: #2ab5c0;
+        --accent-teal-hover: #00e5cc;
+        --accent-purple: #7b5ea7;
+        --text-body: #b0cce0;
+        --text-heading: #00d4bb;
+        --text-white: #e8f4ff;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+      }
+
+      body {
+        background: var(--bg-main);
+        display: flex;
+        min-height: 100vh;
+        width: 100%;
+        color: var(--text-body);
+      }
+
+      .sidebar {
+        width: 240px;
+        background: linear-gradient(180deg, #071020 0%, #0a1e3d 100%);
+        color: var(--text-white);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        min-height: 100vh;
+        transition: width 0.3s ease;
+        overflow: hidden;
+        border-right: 1px solid var(--bg-border);
+      }
+      .sidebar.collapsed {
+        width: 60px;
+      }
+      .sidebar.collapsed .sidebar-brand p,
+      .sidebar.collapsed .admin-name,
+      .sidebar.collapsed .role-badge,
+      .sidebar.collapsed .nav-label,
+      .sidebar.collapsed .logout-text {
+        display: none;
+      }
+      .sidebar.collapsed .nav-item {
+        justify-content: center;
+        padding: 12px 0;
+      }
+      .sidebar.collapsed .admin-avatar {
+        margin: 10px auto;
+      }
+      .sidebar.collapsed .sidebar-profile {
+        padding: 10px 0;
+      }
+      .sidebar.collapsed .sidebar-brand {
+        justify-content: center;
+        padding: 15px 0;
+      }
+      .sidebar.collapsed .brand-text {
+        display: none;
+      }
+
+      .sidebar-brand {
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--bg-border);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: space-between;
+      }
+      .brand-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .brand-icon {
+        width: 34px;
+        height: 34px;
+        background: rgba(42, 181, 192, 0.2);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border: 1px solid rgba(42, 181, 192, 0.3);
+      }
+      .brand-text h2 {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-white);
+      }
+      .brand-text p {
+        font-size: 10px;
+        opacity: 0.6;
+        margin-top: 1px;
+        color: var(--text-body);
+      }
+
+      .toggle-sidebar-btn {
+        background: rgba(42, 181, 192, 0.15);
+        border: none;
+        color: var(--text-white);
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: 0.2s;
+      }
+      .toggle-sidebar-btn:hover {
+        background: rgba(0, 229, 204, 0.3);
+      }
+
+      .sidebar-profile {
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--bg-border);
+        text-align: center;
+      }
+      .admin-avatar {
+        width: 56px;
+        height: 56px;
+        background: rgba(42, 181, 192, 0.15);
+        border-radius: 50%;
+        border: 2px solid var(--accent-teal);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin: 0 auto 8px;
+        overflow: hidden;
+      }
+      .admin-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+      }
+      .admin-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-white);
+      }
+      .role-badge {
+        display: inline-block;
+        background: linear-gradient(
+          135deg,
+          var(--accent-teal),
+          var(--accent-teal-hover)
+        );
+        color: var(--bg-main);
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 20px;
+        margin-top: 4px;
+      }
+      .notif-bell-btn {
+        background: rgba(42, 181, 192, 0.15);
+        border: none;
+        color: var(--text-white);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        transition: 0.2s;
+        position: relative;
+        margin: 6px auto 0;
+      }
+      .notif-bell-btn:hover {
+        background: rgba(0, 229, 204, 0.3);
+      }
+      .notif-bell-badge {
+        position: absolute;
+        top: -3px;
+        right: -3px;
+        background: var(--accent-purple);
+        color: white;
+        font-size: 8px;
+        font-weight: 700;
+        min-width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 2px;
+      }
+
+      .sidebar-nav {
+        flex: 1;
+        padding: 10px 8px;
+        overflow-y: auto;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+        color: var(--text-body);
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 2px;
+        white-space: nowrap;
+      }
+      .nav-item i {
+        font-size: 15px;
+        width: 18px;
+        flex-shrink: 0;
+      }
+      .nav-item:hover {
+        background: rgba(42, 181, 192, 0.15);
+        color: var(--accent-teal-hover);
+      }
+      .nav-item.active {
+        background: rgba(42, 181, 192, 0.2);
+        color: var(--accent-teal-hover);
+        border-left: 3px solid var(--accent-teal);
+        padding-left: 9px;
+      }
+
+      .sidebar-footer {
+        padding: 10px 10px 16px;
+      }
+      .logout-btn {
+        width: 100%;
+        padding: 10px;
+        background: rgba(42, 181, 192, 0.1);
+        color: var(--text-white);
+        border: 1px solid var(--bg-border);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: 0.2s;
+        white-space: nowrap;
+      }
+      .logout-btn:hover {
+        background: #c0392b;
+        border-color: #c0392b;
+      }
+
+      .main-content {
+        flex: 1;
+        min-width: 0;
+        overflow-y: auto;
+        padding: 26px;
+        background: var(--bg-main);
+      }
+
+      .page-header {
+        margin-bottom: 25px;
+      }
+      .page-header h1 {
+        font-size: 26px;
+        color: var(--text-heading);
+        font-weight: 700;
+      }
+      .page-header p {
+        color: var(--text-body);
+        font-size: 13px;
+        margin-top: 4px;
+      }
+
+      .card {
+        background: var(--bg-card);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+        margin-bottom: 20px;
+        border: 1px solid var(--bg-border);
+      }
+      .card h3 {
+        font-size: 16px;
+        color: var(--text-white);
+        font-weight: 600;
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--bg-border);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .card h3 i {
+        color: var(--accent-teal);
+      }
+
+      .status-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(26, 61, 107, 0.5);
+        font-size: 14px;
+      }
+      .status-row:last-child {
+        border-bottom: none;
+      }
+      .status-row .lbl {
+        color: var(--text-body);
+        font-weight: 500;
+      }
+      .status-row .val {
+        font-weight: 600;
+        color: var(--text-white);
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .pill.green {
+        background: rgba(42, 181, 192, 0.15);
+        color: var(--accent-teal-hover);
+        border: 1px solid rgba(42, 181, 192, 0.3);
+      }
+      .pill.blue {
+        background: rgba(123, 94, 167, 0.15);
+        color: #b39ddb;
+        border: 1px solid rgba(123, 94, 167, 0.3);
+      }
+
+      .model-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+      .model-stat {
+        background: rgba(42, 181, 192, 0.06);
+        border-radius: 10px;
+        padding: 18px;
+        text-align: center;
+        border: 1px solid var(--bg-border);
+        transition: 0.2s;
+      }
+      .model-stat:hover {
+        border-color: var(--accent-teal);
+        background: rgba(42, 181, 192, 0.1);
+      }
+      .model-stat .num {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-heading);
+      }
+      .model-stat .lbl {
+        font-size: 12px;
+        color: var(--text-body);
+        margin-top: 4px;
+      }
+
+      .version-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px;
+        background: rgba(42, 181, 192, 0.06);
+        border-radius: 10px;
+        border-left: 4px solid var(--accent-teal);
+        margin-bottom: 12px;
+        border-top: 1px solid var(--bg-border);
+        border-right: 1px solid var(--bg-border);
+        border-bottom: 1px solid var(--bg-border);
+      }
+      .version-info h4 {
+        font-size: 14px;
+        color: var(--text-white);
+        margin-bottom: 3px;
+      }
+      .version-info p {
+        font-size: 12px;
+        color: var(--text-body);
+      }
+      .version-stats {
+        display: flex;
+        gap: 20px;
+        font-size: 13px;
+        color: var(--text-body);
+      }
+      .version-stats span {
+        text-align: center;
+      }
+      .version-stats strong {
+        display: block;
+        font-size: 15px;
+        color: var(--text-heading);
+      }
+      .active-badge {
+        background: rgba(42, 181, 192, 0.15);
+        color: var(--accent-teal-hover);
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid rgba(42, 181, 192, 0.3);
+      }
+
+      .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(42, 181, 192, 0.2);
+        border-top: 3px solid var(--accent-teal);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <script src="theme.js"></script>
+
+  <body>
+    <div
+      class="sidebar"
+      id="adminSidebar">
+      <div class="sidebar-brand">
+        <div class="brand-left">
+          <div class="brand-icon">
+            <img
+              src="images/shield.png"
+              alt="shield"
+              style="width: 22px; height: 22px" />
+          </div>
+          <div class="brand-text">
+            <h2>Admin Panel</h2>
+            <p>Phishing Detector</p>
+          </div>
+        </div>
+        <button
+          class="toggle-sidebar-btn"
+          onclick="toggleAdminSidebar()">
+          <img
+            src="images/toggle (1).png"
+            alt="menu"
+            style="width: 18px; height: 18px" />
+        </button>
+      </div>
+      <div class="sidebar-profile">
+        <div
+          class="admin-avatar"
+          id="sidebarAvatarDiv">
+          <img
+            src="images/software-engineer.png"
+            alt="admin"
+            id="sidebarAvatarIcon"
+            style="width: 56px; height: 56px; border-radius: 50%" />
+        </div>
+        <div
+          class="admin-name"
+          id="adminName">
+          admin
+        </div>
+        <div class="role-badge">ADMIN</div>
+        <button
+          class="notif-bell-btn"
+          onclick="nav('admin_notifications.html')"
+          title="Notifications">
+          <img
+            src="images/notification-bell (1).png"
+            alt="notifications"
+            style="width: 18px; height: 18px" />
+          <span
+            class="notif-bell-badge"
+            id="notifBadge"
+            style="display: none"
+            >0</span
+          >
+        </button>
+      </div>
+      <div class="sidebar-nav">
+        <div
+          class="nav-item"
+          onclick="nav('admin_dashboard.html')">
+          <i class="fas fa-th-large"></i
+          ><span class="nav-label"> Dashboard</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('manage_users.html')">
+          <i class="fas fa-users"></i
+          ><span class="nav-label"> Manage Users</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('email_scans.html')">
+          <i class="fas fa-envelope-open-text"></i
+          ><span class="nav-label"> Email Scans</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('admin_analytics.html')">
+          <i class="fas fa-chart-line"></i
+          ><span class="nav-label"> Analytics</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('admin_feedback.html')">
+          <i class="fas fa-comments"></i
+          ><span class="nav-label"> Feedback</span>
+        </div>
+        <div class="nav-item active">
+          <i class="fas fa-brain"></i><span class="nav-label"> ML Model</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('admin_profile.html')">
+          <i class="fas fa-user-circle"></i
+          ><span class="nav-label"> My Profile</span>
+        </div>
+        <div
+          class="nav-item"
+          onclick="nav('admin_settings.html')">
+          <i class="fas fa-cog"></i><span class="nav-label"> Settings</span>
+        </div>
+      </div>
+      <div class="sidebar-footer">
+        <button
+          class="logout-btn"
+          onclick="adminLogout()">
+          <img
+            src="images/rename (1).png"
+            alt="logout"
+            style="width: 25px; height: 25px" />
+          <span class="logout-text"> Logout</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="page-header">
+        <h1>ML Model Management</h1>
+        <p>Monitor and manage the AI phishing detection model</p>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-circle-check"></i> Current Model Status</h3>
+        <div id="modelStatus">
+          <div style="text-align: center; padding: 20px">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-chart-bar"></i> Model Performance</h3>
+        <div class="model-grid">
+          <div class="model-stat">
+            <div
+              class="num"
+              style="color: var(--accent-teal-hover)">
+              92.3%
+            </div>
+            <div class="lbl">Accuracy</div>
+          </div>
+          <div class="model-stat">
+            <div
+              class="num"
+              id="mTrees">
+              200
+            </div>
+            <div class="lbl">Decision Trees</div>
+          </div>
+          <div class="model-stat">
+            <div
+              class="num"
+              id="mFeatures">
+              3,000
+            </div>
+            <div class="lbl">Features</div>
+          </div>
+          <div class="model-stat">
+            <div
+              class="num"
+              id="mSamples">
+              25,000
+            </div>
+            <div class="lbl">Training Samples</div>
+          </div>
+        </div>
+        <div class="status-row">
+          <span class="lbl">Algorithm</span
+          ><span
+            class="val"
+            id="mAlgo"
+            >RandomForestClassifier</span
+          >
+        </div>
+        <div class="status-row">
+          <span class="lbl">Vectorizer</span
+          ><span class="val">HashingVectorizer</span>
+        </div>
+        <div class="status-row">
+          <span class="lbl">Status</span
+          ><span
+            class="pill green"
+            id="mStatusPill"
+            >Active</span
+          >
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-history"></i> Model Versions</h3>
+        <div class="version-item">
+          <div class="version-info">
+            <h4>Random Forest v1.0 <span class="active-badge">Active</span></h4>
+            <p>Trained on 25,000 samples • 92.29% accuracy</p>
+          </div>
+          <div class="version-stats">
+            <span><strong>92.3%</strong>Accuracy</span>
+            <span><strong>91.8%</strong>Precision</span>
+            <span><strong>92.7%</strong>Recall</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function nav(url) {
+        window.location.href = url;
+      }
+      function adminLogout() {
+        localStorage.removeItem('admin');
+        localStorage.removeItem('adminLoggedIn');
+        window.location.href = 'admin_login.html';
+      }
+      function checkAdminAuth() {
+        const a = JSON.parse(localStorage.getItem('admin') || 'null');
+        if (!a || a.role !== 'admin') {
+          window.location.href = 'admin_login.html';
+          return null;
+        }
+        if (document.getElementById('adminName'))
+          document.getElementById('adminName').textContent =
+            a.username || 'admin';
+        return a;
+      }
+      function toggleAdminSidebar() {
+        const sb = document.getElementById('adminSidebar');
+        sb.classList.toggle('collapsed');
+        localStorage.setItem(
+          'adminSidebarCollapsed',
+          sb.classList.contains('collapsed') ? '1' : '0',
+        );
+      }
+      function initAdminSidebar() {
+        if (localStorage.getItem('adminSidebarCollapsed') === '1') {
+          const sb = document.getElementById('adminSidebar');
+          if (sb) sb.classList.add('collapsed');
+        }
+        const saved = localStorage.getItem('adminAvatar');
+        const div = document.getElementById('sidebarAvatarDiv');
+        if (saved && div)
+          div.innerHTML =
+            '<img src="' +
+            saved +
+            '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+      }
+
+      const API = 'http://localhost:8000';
+
+      async function loadModelInfo() {
+        const admin = JSON.parse(localStorage.getItem('admin') || '{}');
+        if (document.getElementById('adminName'))
+          document.getElementById('adminName').textContent =
+            admin.username || 'admin';
+        try {
+          const res = await fetch(`${API}/api/model/info`, {
+            headers: { Authorization: `Bearer ${admin.access_token}` },
+          });
+          const data = await res.json();
+          if (data.status === 'loaded') {
+            document.getElementById('modelStatus').innerHTML = `
+                        <div class="status-row"><span class="lbl">Status</span><span class="pill green">Loaded</span></div>
+                        <div class="status-row"><span class="lbl">Type</span><span class="val">${data.model_type || 'RandomForestClassifier'}</span></div>
+                        <div class="status-row"><span class="lbl">Trees</span><span class="val">${data.n_estimators || 200}</span></div>
+                        <div class="status-row"><span class="lbl">Features</span><span class="val">${(data.features || 3000).toLocaleString()}</span></div>`;
+            if (document.getElementById('mTrees'))
+              document.getElementById('mTrees').textContent =
+                data.n_estimators || 200;
+            if (document.getElementById('mFeatures'))
+              document.getElementById('mFeatures').textContent = (
+                data.features || 3000
+              ).toLocaleString();
+            if (document.getElementById('mAlgo'))
+              document.getElementById('mAlgo').textContent =
+                data.model_type || 'RandomForestClassifier';
+          } else {
+            document.getElementById('modelStatus').innerHTML =
+              '<p style="color:#ff6b6b;font-size:13px">Model not loaded — using fallback</p>';
+          }
+        } catch (e) {
+          document.getElementById('modelStatus').innerHTML =
+            '<p style="color:#ff6b6b;font-size:13px">Backend offline</p>';
+        }
+      }
+
+      window.addEventListener('DOMContentLoaded', initAdminSidebar);
+      window.onload = loadModelInfo;
+    </script>
+  </body>
+</html>
